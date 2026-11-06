@@ -1,0 +1,2803 @@
+<title>FreshTrack</title>
+<style>
+/* FreshTrack - mobile-first, no framework. */
+
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #f1efe9;
+  --border: #e3e0d8;
+  --text: #1d1c19;
+  --muted: #6f6b62;
+  --accent: #1f8a54;
+  --accent-soft: #e6f3ec;
+  --danger: #c0392b;
+  --danger-soft: #fdecea;
+  --warn: #b46a00;
+  --warn-soft: #fdf1de;
+  --ok: #2b7a4b;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+/* Dark tokens are declared twice: once for the viewer's OS setting, once for an
+   explicit choice, so both the system default and a manual toggle resolve. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --bg: #14161a;
+    --surface: #1c1f24;
+    --surface-2: #23262c;
+    --border: #2e333a;
+    --text: #eceded;
+    --muted: #9aa0a6;
+    --accent: #3ec27f;
+    --accent-soft: #16321f;
+    --danger: #ff6b5e;
+    --danger-soft: #38201d;
+    --warn: #f0b44b;
+    --warn-soft: #33291a;
+    --ok: #3ec27f;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #14161a;
+    --surface: #1c1f24;
+    --surface-2: #23262c;
+    --border: #2e333a;
+    --text: #eceded;
+    --muted: #9aa0a6;
+    --accent: #3ec27f;
+    --accent-soft: #16321f;
+    --danger: #ff6b5e;
+    --danger-soft: #38201d;
+    --warn: #f0b44b;
+    --warn-soft: #33291a;
+    --ok: #3ec27f;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: calc(64px + var(--safe-b));
+}
+
+h1 { font-size: 1.3rem; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: 1.05rem; margin: 0 0 .4rem; }
+p { margin: .3rem 0; }
+.muted { color: var(--muted); font-size: .85rem; }
+.hint { color: var(--muted); font-size: .85rem; padding: 0 1rem; }
+
+/* --- chrome ---------------------------------------------------------- */
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: .75rem;
+  padding: max(.9rem, env(safe-area-inset-top)) 1rem .7rem;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-main { flex: 1; min-width: 0; }
+.topbar-main p { margin: 0; }
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-b);
+}
+.tab {
+  appearance: none; border: 0; background: none; color: var(--muted);
+  font: inherit; font-size: .72rem; padding: .5rem 0 .55rem;
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  cursor: pointer;
+}
+.tab span { font-size: 1.25rem; line-height: 1; }
+.tab.is-active { color: var(--accent); }
+
+.view { padding: .75rem 0 1.5rem; }
+
+/* --- buttons --------------------------------------------------------- */
+
+.btn {
+  appearance: none; font: inherit; font-weight: 550; cursor: pointer;
+  border-radius: 999px; padding: .6rem 1.1rem; border: 1px solid transparent;
+  transition: transform .06s ease, filter .15s ease;
+}
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn.danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.btn.block { width: 100%; display: block; }
+.icon-btn {
+  appearance: none; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); width: 38px; height: 38px; border-radius: 50%;
+  font-size: 1.1rem; cursor: pointer; flex: none;
+}
+.file-btn { display: inline-block; }
+
+input, select, textarea {
+  font: inherit; color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: .6rem .7rem;
+  width: 100%;
+}
+textarea { margin: 0 1rem; width: calc(100% - 2rem); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* --- inventory ------------------------------------------------------- */
+
+.stat-row { display: flex; gap: .5rem; padding: 0 1rem .6rem; overflow-x: auto; }
+.stat {
+  flex: none; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .55rem .8rem; min-width: 92px;
+}
+.stat b { display: block; font-size: 1.25rem; line-height: 1.1; }
+.stat small { color: var(--muted); font-size: .72rem; }
+.stat.alert b { color: var(--danger); }
+.stat.warn b { color: var(--warn); }
+
+.search-row { padding: 0 1rem .6rem; }
+
+.group-title {
+  padding: .9rem 1rem .3rem; font-size: .75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+}
+
+.item {
+  display: flex; align-items: center; gap: .75rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); margin: .4rem 1rem; padding: .7rem .8rem;
+  box-shadow: var(--shadow); cursor: pointer; width: calc(100% - 2rem);
+  text-align: left; font: inherit; color: inherit;
+}
+.item:active { transform: scale(.995); }
+.item-thumb {
+  width: 44px; height: 44px; border-radius: 10px; flex: none;
+  background: var(--surface-2) center/cover no-repeat;
+  display: grid; place-items: center; font-size: 1.3rem;
+}
+.item-main { flex: 1; min-width: 0; }
+.item-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { color: var(--muted); font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pill {
+  flex: none; font-size: .75rem; font-weight: 700; border-radius: 999px;
+  padding: .3rem .6rem; background: var(--surface-2); color: var(--muted);
+  text-align: center; min-width: 62px;
+}
+.pill.ok { background: var(--accent-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.alert { background: var(--danger-soft); color: var(--danger); }
+
+.empty { text-align: center; padding: 3rem 2rem; }
+.empty-art { font-size: 3rem; }
+.empty .btn { margin: .35rem .2rem 0; }
+
+/* --- scanner --------------------------------------------------------- */
+
+.camera-wrap {
+  position: relative; margin: 0 1rem; border-radius: var(--radius);
+  overflow: hidden; background: #000; aspect-ratio: 3 / 4; max-height: 58vh;
+}
+.camera-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.reticle { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.reticle span {
+  width: 62%; aspect-ratio: 1; border-radius: 18px;
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,.35);
+  outline: 2px solid rgba(255,255,255,.85); outline-offset: -2px;
+}
+.scan-status {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: .6rem .8rem;
+  background: rgba(0,0,0,.55); color: #fff; font-size: .82rem; text-align: center;
+}
+.scan-status:empty { display: none; }
+.scan-controls { display: flex; gap: .5rem; justify-content: center; padding: .8rem 1rem .2rem; flex-wrap: wrap; }
+.alt-input { display: flex; gap: .5rem; padding: .8rem 1rem; flex-wrap: wrap; }
+.scan-log { padding: 0 1rem; }
+.scan-log .logline {
+  font-size: .78rem; color: var(--muted); border-left: 3px solid var(--border);
+  padding: .2rem .6rem; margin: .3rem 0; font-family: ui-monospace, Menlo, monospace;
+  word-break: break-all;
+}
+
+/* --- decode view ----------------------------------------------------- */
+
+.ai-table { width: calc(100% - 2rem); margin: 1rem; border-collapse: collapse; font-size: .85rem; }
+.ai-table th, .ai-table td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.ai-table th { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.ai-table code { font-family: ui-monospace, Menlo, monospace; font-size: .8rem; word-break: break-all; }
+.ai-table tr.highlight td { background: var(--accent-soft); }
+.summary-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  margin: 1rem; padding: .9rem; box-shadow: var(--shadow);
+}
+.summary-card dl { display: grid; grid-template-columns: auto 1fr; gap: .3rem .8rem; margin: .5rem 0 0; font-size: .88rem; }
+.summary-card dt { color: var(--muted); }
+.summary-card dd { margin: 0; font-weight: 550; word-break: break-all; }
+.warnings { margin: 0 1rem; padding: .6rem .8rem; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: .82rem; }
+.warnings ul { margin: .2rem 0 0; padding-left: 1.1rem; }
+
+/* --- sheet ----------------------------------------------------------- */
+
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 40; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: .5rem 1rem calc(1.2rem + var(--safe-b));
+  max-height: 92vh; overflow-y: auto;
+  box-shadow: 0 -8px 40px rgba(0,0,0,.25);
+  animation: rise .22s ease;
+}
+@keyframes rise { from { transform: translateY(100%); } }
+.sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: .3rem auto .8rem; }
+
+.field { margin: .7rem 0; }
+.field label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .25rem; }
+.row { display: flex; gap: .5rem; }
+.row > * { flex: 1; }
+.chips { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+.chip {
+  appearance: none; font: inherit; font-size: .78rem; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  border-radius: 999px; padding: .3rem .7rem;
+}
+.chip.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.badge-source {
+  display: inline-flex; align-items: center; gap: .35rem; font-size: .75rem;
+  background: var(--accent-soft); color: var(--ok); border-radius: 999px;
+  padding: .25rem .6rem; font-weight: 600;
+}
+.badge-source.manual { background: var(--warn-soft); color: var(--warn); }
+.sheet-actions { display: flex; gap: .5rem; margin-top: 1rem; }
+.sheet-actions .btn { flex: 1; }
+.stepper { display: flex; align-items: center; gap: .5rem; }
+.stepper button { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-size: 1.2rem; cursor: pointer; }
+.stepper input { text-align: center; }
+
+/* --- toast ----------------------------------------------------------- */
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(76px + var(--safe-b)); z-index: 60;
+  background: var(--text); color: var(--bg); padding: .6rem 1rem;
+  border-radius: 999px; font-size: .85rem; box-shadow: var(--shadow);
+  animation: rise .2s ease;
+}
+
+@media (min-width: 700px) {
+  body { max-width: 620px; margin: 0 auto; }
+  .tabbar { max-width: 620px; margin: 0 auto; }
+}
+
+
+/* --- receipts --------------------------------------------------------- */
+
+.progress {
+  height: 6px; border-radius: 3px; background: var(--surface-2);
+  margin: 1rem; overflow: hidden;
+}
+.progress span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+
+.review-head {
+  display: flex; align-items: flex-end; gap: .75rem;
+  margin: .2rem 1rem 0; padding-bottom: .7rem; border-bottom: 1px solid var(--border);
+}
+.review-head .field { margin: 0; flex: none; width: 10.5rem; }
+.review-head h2 { margin: 0; }
+
+.line {
+  display: grid; grid-template-columns: auto 1fr 8.4rem; align-items: center;
+  gap: .6rem; padding: .55rem 1rem; border-bottom: 1px solid var(--border);
+}
+.line.is-off { opacity: .45; }
+.line-main { min-width: 0; }
+.line input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+.line-name {
+  width: 100%; border: 0; background: none; padding: .1rem 0; font-weight: 550;
+  border-radius: 0; border-bottom: 1px dashed var(--border);
+  text-overflow: ellipsis;
+}
+.line-name:focus { border-bottom-color: var(--accent); outline: none; }
+.line-meta { font-size: .72rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.line input[type="date"] { padding: .35rem .4rem; font-size: .82rem; }
+
+.tag { font-size: .62rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: .1rem .3rem; }
+.tag.guessed { background: var(--warn-soft); color: var(--warn); }
+.tag.learned { background: var(--accent-soft); color: var(--ok); }
+.tag.unknown { background: var(--danger-soft); color: var(--danger); }
+.tag.skip { background: var(--surface-2); color: var(--muted); }
+
+.review-actions {
+  position: sticky; bottom: calc(64px + var(--safe-b)); z-index: 10;
+  display: flex; gap: .5rem; padding: .8rem 1rem;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px); border-top: 1px solid var(--border);
+}
+.review-actions .btn { flex: 1; }
+
+details.raw-text { margin: .8rem 1rem; font-size: .8rem; color: var(--muted); }
+details.raw-text pre {
+  white-space: pre-wrap; word-break: break-word; background: var(--surface-2);
+  padding: .6rem; border-radius: 10px; max-height: 16rem; overflow: auto;
+  font-size: .72rem; line-height: 1.3;
+}
+
+</style>
+<header class="topbar">
+  <div class="topbar-main">
+    <h1 id="view-title">In stock</h1>
+    <p id="view-sub" class="muted"></p>
+  </div>
+  <button id="btn-settings" class="icon-btn" aria-label="Settings">&#9881;</button>
+</header>
+
+<main>
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-inventory" class="view">
+    <div class="stat-row" id="stat-row"></div>
+    <div class="search-row">
+      <input id="search" type="search" placeholder="Search your groceries" autocomplete="off">
+    </div>
+    <div id="inventory-list"></div>
+    <div id="inventory-empty" class="empty" hidden>
+      <div class="empty-art">&#127823;</div>
+      <h2>Nothing tracked yet</h2>
+      <p>Scan a product code, or add something by hand. Codes that carry an expiry date fill it in for you.</p>
+      <button class="btn primary" data-goto="scan">Scan a code</button>
+      <button class="btn ghost" id="btn-add-manual-empty">Add by hand</button>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-scan" class="view" hidden>
+    <div class="camera-wrap">
+      <video id="video" playsinline muted></video>
+      <canvas id="frame" hidden></canvas>
+      <div class="reticle"><span></span></div>
+      <div id="scan-status" class="scan-status"></div>
+    </div>
+    <div class="scan-controls">
+      <button id="btn-scan-toggle" class="btn primary">Start camera</button>
+      <button id="btn-torch" class="btn ghost" hidden>Torch</button>
+      <button id="btn-flip" class="btn ghost" hidden>Flip</button>
+    </div>
+    <p class="hint" id="scan-hint">Point at the QR code, Data Matrix or barcode on the pack.</p>
+    <div class="alt-input">
+      <label class="btn ghost file-btn">Decode a photo
+        <input id="file-photo" type="file" accept="image/*" hidden>
+      </label>
+      <button class="btn ghost" id="btn-type-code">Type a code</button>
+      <button class="btn ghost" id="btn-add-manual">Add by hand</button>
+    </div>
+    <div id="scan-log" class="scan-log"></div>
+  </section>
+
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-receipt" class="view" hidden>
+    <div id="receipt-intro">
+      <p class="hint">Photograph the whole receipt straight on, in good light. The text is read on this device — the photo is never uploaded.</p>
+      <div class="alt-input">
+        <label class="btn primary file-btn">Photograph a receipt
+          <input id="file-receipt" type="file" accept="image/*" capture="environment" hidden>
+        </label>
+        <button class="btn ghost" id="btn-receipt-text">Paste text instead</button>
+      </div>
+      <div class="field" style="padding:0 1rem">
+        <label for="receipt-lang">Receipt language</label>
+        <select id="receipt-lang">
+          <option value="deu">German</option>
+          <option value="fra">French</option>
+          <option value="ita">Italian</option>
+          <option value="eng">English</option>
+        </select>
+      </div>
+      <p class="hint">A receipt says what you bought and when, never when it goes off. Each line is matched to a food category and given that category's typical shelf life from the purchase date — then you correct what looks wrong. Corrections are remembered for next time.</p>
+    </div>
+
+    <div id="receipt-progress" hidden>
+      <div class="progress"><span id="progress-bar"></span></div>
+      <p class="hint" id="progress-label"></p>
+    </div>
+
+    <div id="receipt-review" hidden></div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-decode" class="view" hidden>
+    <p class="hint">Paste anything a scanner produced and see exactly what the code carries. Useful for finding out what your supermarket actually encodes.</p>
+    <textarea id="decode-input" rows="3" placeholder="https://id.gs1.org/01/09506000134352?17=270131  -  or a raw element string"></textarea>
+    <div class="alt-input">
+      <button class="btn primary" id="btn-decode">Decode</button>
+      <button class="btn ghost" data-sample="dl">Sample: Digital Link</button>
+      <button class="btn ghost" data-sample="dm">Sample: DataMatrix</button>
+      <button class="btn ghost" data-sample="ean">Sample: EAN-13</button>
+    </div>
+    <div id="decode-output"></div>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button class="tab is-active" data-view="inventory"><span>&#128203;</span>Stock</button>
+  <button class="tab" data-view="scan"><span>&#128247;</span>Scan</button>
+  <button class="tab" data-view="receipt"><span>&#129534;</span>Receipt</button>
+  <button class="tab" data-view="decode"><span>&#128269;</span>Decode</button>
+</nav>
+
+<!-- bottom sheet ------------------------------------------------------- -->
+<div id="scrim" class="scrim" hidden></div>
+<div id="sheet" class="sheet" role="dialog" aria-modal="true" hidden>
+  <div class="sheet-handle"></div>
+  <div id="sheet-body"></div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<script>
+const __mod_gs1 = (() => {
+/**
+ * gs1.js - parsing of GS1 product codes.
+ *
+ * Handles the three things a scanner can hand us in 2026:
+ *
+ *   1. A GS1 Digital Link URI (the "Sunrise 2027" QR code)
+ *        https://id.example.org/01/07613039398034/10/L4321?17=270131
+ *   2. A GS1 element string (GS1 DataMatrix / GS1 QR / GS1-128 / DataBar),
+ *      where FNC1 is transmitted as GS (0x1D) and the whole string may be
+ *      prefixed with an AIM symbology identifier such as ]d2 or ]Q3
+ *        ]d201076130393980341727013110L4321
+ *   3. A plain EAN-13 / EAN-8 / UPC-A linear barcode - GTIN only, no dates.
+ *
+ * Everything is returned in one normalised shape so the app does not care
+ * which carrier the data arrived in.
+ */
+
+const GS = '\x1D';
+
+/* ------------------------------------------------------------------ *
+ * Application Identifier table
+ * ------------------------------------------------------------------ */
+
+// Predefined-length AIs (GS1 General Specifications, figure 7.8.6-2).
+// Key = first two digits, value = TOTAL length of AI + data.
+const PREDEFINED_TOTAL = {
+  '00': 20, '01': 16, '02': 16, '03': 16, '04': 18,
+  '11': 8, '12': 8, '13': 8, '14': 8, '15': 8, '16': 8,
+  '17': 8, '18': 8, '19': 8, '20': 4,
+  '31': 10, '32': 10, '33': 10, '34': 10, '35': 10, '36': 10,
+  '41': 16,
+};
+
+const T = { STR: 'string', NUM: 'number', DATE: 'date', DATETIME: 'datetime', DEC: 'decimal' };
+
+/** code -> { label, type, max } */
+const AI_TABLE = {};
+
+function ai(code, label, type, max) {
+  AI_TABLE[code] = { code, label, type, max };
+}
+
+// --- identification keys -------------------------------------------------
+ai('00', 'SSCC', T.NUM, 18);
+ai('01', 'GTIN', T.NUM, 14);
+ai('02', 'GTIN of contained trade items', T.NUM, 14);
+ai('03', 'MTO GTIN', T.NUM, 14);
+ai('10', 'Batch/Lot', T.STR, 20);
+ai('21', 'Serial number', T.STR, 20);
+ai('22', 'Consumer product variant', T.STR, 20);
+ai('235', 'Third party controlled serial', T.STR, 28);
+ai('240', 'Additional product ID', T.STR, 30);
+ai('241', 'Customer part number', T.STR, 30);
+ai('242', 'Made-to-order variation', T.NUM, 6);
+ai('243', 'Packaging component number', T.STR, 20);
+ai('250', 'Secondary serial number', T.STR, 30);
+ai('251', 'Reference to source entity', T.STR, 30);
+ai('253', 'GDTI', T.STR, 30);
+ai('254', 'GLN extension', T.STR, 20);
+ai('255', 'GCN', T.STR, 25);
+ai('30', 'Variable count', T.NUM, 8);
+ai('37', 'Count of trade items', T.NUM, 8);
+
+// --- dates ---------------------------------------------------------------
+ai('11', 'Production date', T.DATE, 6);
+ai('12', 'Due date', T.DATE, 6);
+ai('13', 'Packaging date', T.DATE, 6);
+ai('15', 'Best before date', T.DATE, 6);
+ai('16', 'Sell by date', T.DATE, 6);
+ai('17', 'Expiration date', T.DATE, 6);
+ai('7003', 'Expiration date and time', T.DATETIME, 10);
+ai('7006', 'First freeze date', T.DATE, 6);
+ai('7007', 'Harvest date', T.STR, 12);
+ai('4324', 'Best before date and time', T.DATETIME, 10);
+ai('4326', 'Release date', T.DATE, 6);
+
+// --- measures: 31nn..36nn and 39nn are generated -------------------------
+const MEASURE_GROUPS = [
+  ['310', 'Net weight (kg)'], ['311', 'Length (m)'], ['312', 'Width (m)'],
+  ['313', 'Height (m)'], ['314', 'Area (m2)'], ['315', 'Net volume (l)'],
+  ['316', 'Net volume (m3)'],
+  ['320', 'Net weight (lb)'], ['321', 'Length (in)'], ['322', 'Length (ft)'],
+  ['323', 'Length (yd)'], ['324', 'Width (in)'], ['325', 'Width (ft)'],
+  ['326', 'Width (yd)'], ['327', 'Height (in)'], ['328', 'Height (ft)'],
+  ['329', 'Height (yd)'],
+  ['330', 'Gross weight (kg)'], ['331', 'Length, logistic (m)'],
+  ['332', 'Width, logistic (m)'], ['333', 'Height, logistic (m)'],
+  ['334', 'Area, logistic (m2)'], ['335', 'Volume, logistic (l)'],
+  ['336', 'Volume, logistic (m3)'], ['337', 'Kilograms per m2'],
+  ['350', 'Area (in2)'], ['351', 'Area (ft2)'], ['352', 'Area (yd2)'],
+  ['360', 'Net volume (qt)'], ['361', 'Net volume (gal)'],
+  ['364', 'Net volume (in3)'], ['365', 'Net volume (ft3)'],
+];
+for (const [base, label] of MEASURE_GROUPS) {
+  for (let d = 0; d <= 5; d++) ai(base + d, label, T.DEC, 6);
+}
+for (const [base, label] of [['390', 'Amount payable'], ['391', 'Amount payable + ISO currency'],
+  ['392', 'Amount payable, single item'], ['393', 'Amount payable, single item + currency'],
+  ['394', 'Percentage discount'], ['395', 'Amount payable per unit']]) {
+  for (let d = 0; d <= 9; d++) ai(base + d, label, T.DEC, 15);
+}
+
+// --- logistics / locations ----------------------------------------------
+ai('400', 'Customer PO number', T.STR, 30);
+ai('401', 'GINC', T.STR, 30);
+ai('402', 'GSIN', T.NUM, 17);
+ai('403', 'Routing code', T.STR, 30);
+for (const [code, label] of [['410', 'Ship to GLN'], ['411', 'Bill to GLN'],
+  ['412', 'Purchased from GLN'], ['413', 'Ship for GLN'], ['414', 'Physical location GLN'],
+  ['415', 'Invoicing party GLN'], ['416', 'Production location GLN'], ['417', 'Party GLN']]) {
+  ai(code, label, T.NUM, 13);
+}
+ai('420', 'Ship to postal code', T.STR, 20);
+ai('421', 'Ship to postal code (with ISO country)', T.STR, 12);
+ai('422', 'Country of origin', T.NUM, 3);
+ai('423', 'Country of initial processing', T.NUM, 15);
+ai('424', 'Country of processing', T.NUM, 3);
+ai('425', 'Country of disassembly', T.NUM, 15);
+ai('426', 'Country covering full process chain', T.NUM, 3);
+ai('427', 'Country subdivision of origin', T.STR, 3);
+
+// --- internal / regulatory ----------------------------------------------
+ai('7001', 'NATO stock number', T.NUM, 13);
+ai('7002', 'Meat carcasses classification', T.STR, 30);
+ai('7004', 'Active potency', T.NUM, 4);
+ai('7005', 'Catch area', T.STR, 12);
+ai('7008', 'Aquatic species', T.STR, 3);
+ai('7009', 'Fishing gear type', T.STR, 10);
+ai('7010', 'Production method', T.STR, 2);
+ai('7011', 'Test by date', T.STR, 10);
+for (const [code, label] of [['710', 'NHRN Germany (PZN)'], ['711', 'NHRN France (CIP)'],
+  ['712', 'NHRN Spain (CN)'], ['713', 'NHRN Brazil (DRGC)'], ['714', 'NHRN Portugal (AIM)'],
+  ['715', 'NHRN United States (NDC)'], ['716', 'NHRN Italy (AIC)']]) ai(code, label, T.STR, 20);
+ai('8001', 'Roll products', T.NUM, 14);
+ai('8002', 'Mobile phone identifier', T.STR, 20);
+ai('8003', 'GRAI', T.STR, 30);
+ai('8004', 'GIAI', T.STR, 30);
+ai('8005', 'Price per unit of measure', T.NUM, 6);
+ai('8006', 'ITIP', T.NUM, 18);
+ai('8007', 'IBAN', T.STR, 34);
+ai('8008', 'Date/time of production', T.STR, 12);
+ai('8010', 'CPID', T.STR, 30);
+ai('8011', 'CPID serial number', T.NUM, 12);
+ai('8012', 'Software version', T.STR, 20);
+ai('8013', 'GMN', T.STR, 25);
+ai('8017', 'GSRN provider', T.NUM, 18);
+ai('8018', 'GSRN recipient', T.NUM, 18);
+ai('8019', 'Service relation instance number', T.NUM, 10);
+ai('8020', 'Payment slip reference', T.STR, 25);
+ai('8026', 'ITIP of contained items', T.NUM, 18);
+ai('8110', 'Coupon code (North America)', T.STR, 70);
+ai('8111', 'Loyalty points', T.NUM, 4);
+ai('8112', 'Paperless coupon code', T.STR, 70);
+ai('8200', 'Product URL', T.STR, 70);
+for (let i = 90; i <= 99; i++) ai(String(i), 'Internal (' + i + ')', T.STR, 90);
+
+/** AI codes that carry a date we care about, best first. */
+const EXPIRY_AIS = ['17', '7003', '15', '4324', '16'];
+
+/* ------------------------------------------------------------------ *
+ * Low level helpers
+ * ------------------------------------------------------------------ */
+
+/**
+ * GS1 dates are YYMMDD. The century is inferred with the GS1 pivot rule:
+ * a two-digit year 51..99 years ahead of the current year belongs to the
+ * previous century. DD = 00 means "end of that month".
+ * Returns an ISO yyyy-mm-dd string, or null if the value is not a date.
+ */
+function parseGs1Date(value, now = new Date()) {
+  if (!/^\d{6}$/.test(value)) return null;
+  const yy = +value.slice(0, 2);
+  const mm = +value.slice(2, 4);
+  let dd = +value.slice(4, 6);
+  if (mm < 1 || mm > 12) return null;
+
+  const currentYear = now.getFullYear();
+  let diff = yy - (currentYear % 100);
+  if (diff >= 51) diff -= 100;
+  else if (diff <= -50) diff += 100;
+  const year = currentYear + diff;
+
+  const lastDay = new Date(Date.UTC(year, mm, 0)).getUTCDate();
+  if (dd === 0) dd = lastDay;          // "end of month"
+  else if (dd > lastDay) return null;
+
+  return String(year).padStart(4, '0') + '-' +
+         String(mm).padStart(2, '0') + '-' +
+         String(dd).padStart(2, '0');
+}
+
+/** YYMMDDHHMM (AI 7003 / 4324) -> { date, time }. */
+function parseGs1DateTime(value, now = new Date()) {
+  if (!/^\d{8,10}$/.test(value)) return null;
+  const date = parseGs1Date(value.slice(0, 6), now);
+  if (!date) return null;
+  const hh = value.slice(6, 8) || '00';
+  const mi = value.slice(8, 10) || '00';
+  if (+hh > 23 || +mi > 59) return { date, time: null };
+  return { date, time: hh + ':' + mi };
+}
+
+/** Normalise any GTIN-8/12/13/14 to 14 digits. */
+function normaliseGtin(gtin) {
+  const digits = String(gtin || '').replace(/\D/g, '');
+  if (!digits || digits.length > 14) return null;
+  return digits.padStart(14, '0');
+}
+
+/** GS1 mod-10 check digit over a normalised (14 digit) GTIN. */
+function gtinCheckDigitValid(gtin) {
+  const g = normaliseGtin(gtin);
+  if (!g) return false;
+  let sum = 0;
+  for (let i = 0; i < 13; i++) sum += (+g[i]) * (i % 2 === 0 ? 3 : 1);
+  return (10 - (sum % 10)) % 10 === +g[13];
+}
+
+function aiLengthAt(str, pos) {
+  for (const len of [4, 3, 2]) {
+    if (AI_TABLE[str.substr(pos, len)]) return len;
+  }
+  return 0;
+}
+
+function decodeValue(code, raw, now) {
+  const def = AI_TABLE[code];
+  if (!def) return { raw, value: raw };
+  if (def.type === T.DATE) return { raw, value: parseGs1Date(raw, now) };
+  if (def.type === T.DATETIME) {
+    const dt = parseGs1DateTime(raw, now);
+    return { raw, value: dt ? dt.date : null, time: dt ? dt.time : null };
+  }
+  if (def.type === T.DEC && /^\d{4}$/.test(code)) {
+    const decimals = +code[3];
+    const n = +raw;
+    return { raw, value: Number.isFinite(n) ? n / Math.pow(10, decimals) : null };
+  }
+  return { raw, value: raw };
+}
+
+/* ------------------------------------------------------------------ *
+ * Element strings (GS1 DataMatrix / GS1 QR / GS1-128 / DataBar)
+ * ------------------------------------------------------------------ */
+
+const SYMBOLOGY = {
+  ']d2': 'GS1 DataMatrix', ']Q3': 'GS1 QR Code', ']C1': 'GS1-128',
+  ']e0': 'GS1 DataBar', ']e1': 'GS1 DataBar (composite)', ']e2': 'GS1 DataBar (composite)',
+  ']E0': 'EAN-13 / UPC-A', ']E4': 'EAN-8', ']d1': 'Data Matrix', ']Q1': 'QR Code',
+  ']Q2': 'QR Code', ']Q0': 'QR Code',
+};
+
+function stripSymbology(input) {
+  if (input.length >= 3 && input[0] === ']') {
+    const id = input.slice(0, 3);
+    return { symbology: SYMBOLOGY[id] || ('Unknown (' + id + ')'), aim: id, body: input.slice(3) };
+  }
+  return { symbology: null, aim: null, body: input };
+}
+
+/**
+ * Parse a GS1 element string into ordered AI segments.
+ * Accepts GS (0x1D) as the FNC1 separator, and tolerates the common
+ * keyboard-wedge substitutes <GS>, {GS} and ^.
+ */
+function parseElementString(input, now = new Date()) {
+  const { symbology, aim, body } = stripSymbology(String(input));
+  const str = body.replace(/<GS>/gi, GS).replace(/\{GS\}/gi, GS).replace(/\^/g, GS);
+
+  const segments = [];
+  const warnings = [];
+  let pos = 0;
+
+  while (pos < str.length) {
+    if (str[pos] === GS) { pos++; continue; }
+
+    const aiLen = aiLengthAt(str, pos);
+
+    if (!aiLen) {
+      // Unknown AI: assume two digits and read to the next separator so the
+      // rest of the string can still be recovered.
+      const code = str.substr(pos, 2);
+      if (!/^\d{2}$/.test(code)) {
+        warnings.push('Stopped at position ' + pos + ': "' + str.slice(pos, pos + 8) + '" is not an application identifier.');
+        break;
+      }
+      const end = str.indexOf(GS, pos + 2);
+      const value = end === -1 ? str.slice(pos + 2) : str.slice(pos + 2, end);
+      pos = end === -1 ? str.length : end + 1;
+      segments.push({ ai: code, label: 'Unknown AI ' + code, known: false, raw: value, value });
+      warnings.push('Unknown application identifier ' + code + '.');
+      continue;
+    }
+
+    const code = str.substr(pos, aiLen);
+    const total = PREDEFINED_TOTAL[code.slice(0, 2)];
+    let value;
+
+    if (total) {
+      const dataLen = total - aiLen;
+      value = str.substr(pos + aiLen, dataLen);
+      pos += aiLen + dataLen;
+      if (str[pos] === GS) pos++;          // a separator after a fixed field is legal
+      if (value.length < dataLen) warnings.push('AI ' + code + ' is truncated.');
+    } else {
+      const end = str.indexOf(GS, pos + aiLen);
+      value = end === -1 ? str.slice(pos + aiLen) : str.slice(pos + aiLen, end);
+      pos = end === -1 ? str.length : end + 1;
+      const def = AI_TABLE[code];
+      if (def && value.length > def.max) {
+        warnings.push('AI ' + code + ' is longer than the ' + def.max + ' characters allowed.');
+      }
+    }
+
+    segments.push({
+      ai: code,
+      label: AI_TABLE[code].label,
+      known: true,
+      ...decodeValue(code, value, now),
+    });
+  }
+
+  return { format: 'element-string', symbology, aim, segments, warnings };
+}
+
+/* ------------------------------------------------------------------ *
+ * GS1 Digital Link URIs
+ * ------------------------------------------------------------------ */
+
+// Primary keys that may start a Digital Link path.
+const PRIMARY_KEYS = {
+  '01': 1, '8006': 1, '8013': 1, '8010': 1, '00': 1, '253': 1, '255': 1,
+  '401': 1, '402': 1, '414': 1, '417': 1, '8003': 1, '8004': 1, '8017': 1, '8018': 1,
+};
+
+// Alphanumeric "convenience alphas" were removed in Digital Link 1.3, but
+// codes printed before that are still in circulation, so we accept them.
+const LEGACY_ALPHAS = {
+  gtin: '01', itip: '8006', cpv: '22', lot: '10', ser: '21', sscc: '00',
+  gdti: '253', gcn: '255', ginc: '401', gsin: '402', gln: '414', party: '417',
+  glnx: '254', grai: '8003', giai: '8004', gsrnp: '8017', gsrn: '8018',
+  cpid: '8010', cpsn: '8011', exp: '17', expdt: '7003', srin: '8019',
+};
+
+function looksLikeDigitalLink(input) {
+  return /^https?:\/\//i.test(String(input).trim());
+}
+
+function parseDigitalLink(input, now = new Date()) {
+  const raw = String(input).trim();
+  let url;
+  try { url = new URL(raw); } catch { return null; }
+
+  const parts = url.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  const segments = [];
+  const warnings = [];
+
+  // The GS1 path is the trailing run of key/value pairs; anything before it
+  // (for example /gs1/ or a shop path) is the domain part and is ignored.
+  let start = -1;
+  for (let i = parts.length - 2; i >= 0; i -= 2) {
+    const key = LEGACY_ALPHAS[parts[i].toLowerCase()] || parts[i];
+    if (PRIMARY_KEYS[key]) { start = i; break; }
+  }
+  if (start === -1) {
+    warnings.push('No GS1 primary key (for example /01/<GTIN>) found in the path.');
+    return { format: 'digital-link', url: raw, origin: url.origin, segments, warnings, unrecognised: true };
+  }
+
+  let primary = null;
+  for (let i = start; i + 1 < parts.length; i += 2) {
+    const rawKey = parts[i];
+    const code = LEGACY_ALPHAS[rawKey.toLowerCase()] || rawKey;
+    let value = parts[i + 1];
+    if (!AI_TABLE[code]) { warnings.push('Unknown path key "' + rawKey + '".'); continue; }
+    if (code === '01' || code === '02' || code === '03') value = normaliseGtin(value) || value;
+    if (!primary && PRIMARY_KEYS[code]) primary = code;
+    segments.push({ ai: code, label: AI_TABLE[code].label, known: true, source: 'path', ...decodeValue(code, value, now) });
+  }
+
+  for (const [rawKey, value] of url.searchParams) {
+    if (rawKey.toLowerCase().startsWith('linktype')) continue;
+    const code = LEGACY_ALPHAS[rawKey.toLowerCase()] || rawKey;
+    if (!AI_TABLE[code]) continue;   // non-GS1 query parameters are legal, just not ours
+    segments.push({ ai: code, label: AI_TABLE[code].label, known: true, source: 'query', ...decodeValue(code, value, now) });
+  }
+
+  return { format: 'digital-link', url: raw, origin: url.origin, primary, segments, warnings };
+}
+
+/* ------------------------------------------------------------------ *
+ * Public entry point
+ * ------------------------------------------------------------------ */
+
+/**
+ * Parse anything a scanner produced into one normalised shape.
+ */
+function parseCode(input, opts = {}) {
+  const now = opts.now || new Date();
+  const raw = String(input == null ? '' : input).trim();
+
+  const empty = {
+    ok: false, format: 'unknown', symbology: null, raw,
+    gtin: null, gtinValid: false, expiry: null, expiryAi: null, expiryKind: null,
+    expiryTime: null, bestBefore: null, lot: null, serial: null,
+    netWeight: null, price: null, url: null, segments: [], warnings: [],
+  };
+  if (!raw) return empty;
+
+  let parsed;
+  if (looksLikeDigitalLink(raw)) {
+    parsed = parseDigitalLink(raw, now);
+    if (!parsed) return { ...empty, warnings: ['Looked like a URL but could not be parsed.'] };
+  } else if (/^(\d{8}|\d{12,14})$/.test(raw) && gtinCheckDigitValid(raw)) {
+    // A plain linear barcode: GTIN only, nothing else on board.
+    parsed = {
+      format: 'plain-gtin', symbology: null, warnings: [],
+      segments: [{ ai: '01', label: 'GTIN', known: true, raw, value: normaliseGtin(raw) }],
+    };
+  } else {
+    parsed = parseElementString(raw, now);
+    if (!parsed.segments.length) {
+      return { ...empty, warnings: ['Not a GS1 code - no application identifiers recognised.'] };
+    }
+  }
+
+  const out = { ...empty, ...parsed, raw, warnings: (parsed.warnings || []).slice() };
+  const find = (code) => parsed.segments.find((s) => s.ai === code);
+
+  const gtinSeg = find('01') || find('02') || find('03');
+  if (gtinSeg) {
+    out.gtin = normaliseGtin(gtinSeg.value);
+    out.gtinValid = gtinCheckDigitValid(out.gtin);
+    if (!out.gtinValid) out.warnings.push('GTIN check digit does not match.');
+  }
+
+  for (const code of EXPIRY_AIS) {
+    const seg = find(code);
+    if (seg && seg.value) {
+      out.expiry = seg.value;
+      out.expiryAi = code;
+      out.expiryKind = AI_TABLE[code].label;
+      out.expiryTime = seg.time || null;
+      break;
+    }
+  }
+  const bb = find('15') || find('4324');
+  if (bb && bb.value) out.bestBefore = bb.value;
+
+  const lot = find('10'); if (lot) out.lot = lot.value;
+  const ser = find('21'); if (ser) out.serial = ser.value;
+
+  const weight = parsed.segments.find((s) => /^310\d$/.test(s.ai));
+  if (weight && typeof weight.value === 'number') out.netWeight = weight.value;
+  const price = parsed.segments.find((s) => /^39[02]\d$/.test(s.ai));
+  if (price && typeof price.value === 'number') out.price = price.value;
+
+  out.ok = Boolean(out.gtin) || parsed.segments.length > 0;
+  return out;
+}
+
+/** Days from today until an ISO date. Negative means already past. */
+function daysUntil(isoDate, now = new Date()) {
+  if (!isoDate) return null;
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const target = Date.UTC(y, m - 1, d);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((target - today) / 86400000);
+}
+
+return {parseGs1Date, parseGs1DateTime, normaliseGtin, gtinCheckDigitValid, parseElementString, looksLikeDigitalLink, parseDigitalLink, parseCode, daysUntil, AI_TABLE, EXPIRY_AIS};
+})();
+
+const __mod_shelflife = (() => {
+/**
+ * shelflife.js - turning a product name into a plausible expiry date.
+ *
+ * A receipt says what you bought and when. It never says when it goes off.
+ * This table closes that gap: each category carries typical storage life in
+ * days for the fridge, the cupboard and the freezer, plus the keywords that
+ * identify it on a Swiss till receipt in German, French and English.
+ *
+ * The numbers are deliberately conservative for fresh food (better an early
+ * nudge than a nasty surprise) and deliberately vague for dry goods, where
+ * the pack date is far more accurate than anything we could guess. They are a
+ * starting point the user corrects - and every correction is remembered.
+ *
+ * Order matters: the first category whose pattern matches wins, so specific
+ * entries and false-friend traps ("Milchschokolade" is not milk) come first.
+ */
+
+
+/* ------------------------------------------------------------------ *
+ * Spelling tolerance
+ *
+ * OCR and till printers disagree about umlauts: the same product reads as
+ * "Rüebli", "Rueebli" or "Ruebli" depending on the day. Folding both the text
+ * and the patterns into one plain-ASCII form makes all three the same word.
+ * ------------------------------------------------------------------ */
+
+const stripAccents = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss');
+
+function collapseDigraphs(s) {
+  let previous;
+  do { previous = s; s = s.replace(/ue/g, 'u').replace(/oe/g, 'o').replace(/ae/g, 'a'); }
+  while (s !== previous);
+  return s;
+}
+
+/** Fold arbitrary text for matching: lowercase, no accents, no ue/oe/ae. */
+const fold = (s) => collapseDigraphs(stripAccents(String(s || '')).toLowerCase());
+
+/** Fold a regular expression the same way, so patterns and text agree. */
+const foldPattern = (re) => new RegExp(collapseDigraphs(stripAccents(re.source)), re.flags);
+
+const D = (fridge, pantry, freezer) => ({ fridge, pantry, freezer });
+
+const CATEGORIES = [
+  /* --- traps: these must be tested before the generic word they contain --- */
+  { key: 'chocolate', label: 'Chocolate', home: 'pantry', days: D(365, 365, 365),
+    match: /schok|schogg|chocolat|choc\b|ovomalt|toblerone|lindt|cailler/i },
+  { key: 'uht-milk', label: 'Long-life milk', home: 'pantry', days: D(14, 180, 180),
+    match: /uht|haltbare?\s*milch|lait\s*uht|kondensmilch/i },
+  { key: 'coconut-milk', label: 'Coconut milk', home: 'pantry', days: D(5, 540, 540),
+    match: /kokosmilch|lait\s*de\s*coco|coconut\s*milk/i },
+  { key: 'ice-cream', label: 'Ice cream', home: 'freezer', days: D(0, 0, 180),
+    match: /glace|speiseeis|ice\s*cream|magnum|cornet/i },
+  { key: 'frozen', label: 'Frozen food', home: 'freezer', days: D(1, 0, 180),
+    match: /tiefk|tk[-\s]|surgel|gefrier|frozen|pizza\s*tk/i },
+
+  /* --- highly perishable ------------------------------------------------ */
+  { key: 'fish', label: 'Fresh fish', home: 'fridge', days: D(2, 0, 120),
+    match: /fisch|lachs|saumon|forelle|truite|thon\b|dorade|zander|meeresfr|crevet|garnel|shrimp|poisson|seafood/i },
+  { key: 'mince', label: 'Minced meat', home: 'fridge', days: D(2, 0, 90),
+    match: /hackfleisch|gehackt|hackt|hache|mince[dr]?\s*meat|tatar|cipollata/i },
+  { key: 'poultry', label: 'Fresh poultry', home: 'fridge', days: D(2, 0, 180),
+    match: /poulet|hahnchen|huhner|huhn\b|pouletbrust|dinde|truthahn|pute\b|chicken|volaille/i },
+  { key: 'meat', label: 'Fresh meat', home: 'fridge', days: D(3, 0, 180),
+    match: /steak|schnitzel|kotelett|entrecote|filet|rindfleisch|schweins|kalbs|lamm|agneau|b[oœ]uf|porc|viande|fleisch(?!kase)/i },
+  { key: 'berries', label: 'Berries', home: 'fridge', days: D(3, 2, 180),
+    match: /erdbeer|himbeer|heidelbeer|brombeer|beeren|fraise|framboise|myrtille|berr(y|ies)/i },
+  { key: 'salad', label: 'Salad and leaves', home: 'fridge', days: D(4, 0, 0),
+    match: /salat|salade|rucola|roquette|nussli|spinat|epinard|lattich|batavia|lollo/i },
+  { key: 'bread', label: 'Bread', home: 'pantry', days: D(7, 3, 90),
+    match: /\bbrot|brotchen|gipfeli|croissant|baguette|\bpain\b|weggli|zopf|semmel|ciabatta|focaccia|fladen/i },
+  { key: 'fresh-meal', label: 'Fresh ready meal', home: 'fridge', days: D(3, 0, 0),
+    match: /anna'?s\s*best|fertigmen|menu\b|sandwich|wrap\b|sushi|salatschale|traiteur/i },
+  { key: 'fresh-pasta', label: 'Fresh pasta', home: 'fridge', days: D(5, 0, 90),
+    match: /frischteig|ravioli|tortellini|gnocchi|pate\s*fraiche/i },
+  { key: 'mushrooms', label: 'Mushrooms', home: 'fridge', days: D(5, 0, 0),
+    match: /champignon|pilze|steinpilz|shiitake|mushroom/i },
+  { key: 'herbs', label: 'Fresh herbs', home: 'fridge', days: D(6, 0, 180),
+    match: /krauter|basilikum|basilic|petersilie|persil|schnittlauch|koriander|minze|thymian|rosmarin/i },
+  { key: 'cold-cuts', label: 'Cold cuts', home: 'fridge', days: D(5, 0, 60),
+    match: /aufschnitt|schinken|jambon|speck|bacon|cervelat|bratwurst|wienerli|wurstchen|charcuterie|lyoner/i },
+  { key: 'salami', label: 'Cured sausage', home: 'fridge', days: D(30, 14, 90),
+    match: /salami|landjager|trockenfleisch|bundnerfleisch|chorizo|proscuitto|prosciutto|rohschinken/i },
+
+  /* --- dairy ------------------------------------------------------------- */
+  { key: 'milk', label: 'Milk', home: 'fridge', days: D(7, 1, 90),
+    match: /milch|\blait\b|\bmilk\b|rahm|sahne|creme\s*enti|halbrahm|vollrahm/i },
+  { key: 'yogurt', label: 'Yoghurt', home: 'fridge', days: D(14, 0, 0),
+    match: /jogh?urt|yogourt|yaourt|skyr|kefir/i },
+  { key: 'quark', label: 'Quark and cottage cheese', home: 'fridge', days: D(10, 0, 0),
+    match: /quark|sere|huttenkase|cottage|blanc\s*battu/i },
+  { key: 'soft-cheese', label: 'Soft cheese', home: 'fridge', days: D(10, 0, 60),
+    match: /mozzarella|ricotta|frischkase|philadelphia|brie|camembert|feta|burrata|chevre|ziger/i },
+  { key: 'cheese', label: 'Cheese', home: 'fridge', days: D(21, 0, 180),
+    match: /kase|fromage|cheese|gruyere|emmentaler|appenzeller|parmesan|raclette|tilsiter|sbrinz|mozzarell/i },
+  { key: 'butter', label: 'Butter', home: 'fridge', days: D(35, 0, 180),
+    match: /butter|beurre|margarine/i },
+  { key: 'eggs', label: 'Eggs', home: 'fridge', days: D(21, 7, 0),
+    match: /\beier\b|\bei\b|oeufs?|\beggs?\b|freiland.?ei/i },
+
+  /* --- fruit and vegetables --------------------------------------------- */
+  // a juice is tested before its fruit, so "Apfelsaft" is not an apple
+  { key: 'juice', label: 'Juice', home: 'fridge', days: D(10, 180, 0),
+    match: /saft|jus\b|juice|smoothie|nektar/i },
+  { key: 'banana', label: 'Bananas', home: 'pantry', days: D(7, 5, 90),
+    match: /banane|banana/i },
+  { key: 'avocado', label: 'Avocado', home: 'fridge', days: D(5, 3, 0),
+    match: /avocado|avocat/i },
+  { key: 'stone-fruit', label: 'Soft fruit', home: 'fridge', days: D(5, 3, 180),
+    match: /pfirsich|nektarine|aprikose|pflaume|zwetschg|kirsche|cerise|peche|abricot|prune|trauben|raisin|feige|mango|papaya|kiwi/i },
+  { key: 'apple', label: 'Apples and pears', home: 'fridge', days: D(21, 7, 0),
+    match: /apfel|birne|pomme|poire|apple|pear/i },
+  { key: 'citrus', label: 'Citrus', home: 'fridge', days: D(14, 7, 0),
+    match: /orange|zitrone|citron|limette|mandarin|clementine|grapefruit|pampelmuse|lemon/i },
+  { key: 'soft-veg', label: 'Soft vegetables', home: 'fridge', days: D(7, 3, 180),
+    match: /tomate|gurke|concombre|peperoni|paprika|poivron|zucchetti|courgette|aubergine|melanzane/i },
+  { key: 'brassica', label: 'Broccoli and beans', home: 'fridge', days: D(5, 0, 240),
+    match: /broccoli|brokkoli|blumenkohl|chou.?fleur|bohnen|haricot|erbsen|petit\s*pois|spargel|asperge|fenchel|federkohl/i },
+  { key: 'root-veg', label: 'Root vegetables', home: 'fridge', days: D(14, 7, 240),
+    match: /ruebli|karotte|carotte|sellerie|celeri|lauch|poireau|kohl|chou\b|randen|betterave|kohlrabi|rande/i },
+  { key: 'potato', label: 'Potatoes', home: 'pantry', days: D(21, 30, 0),
+    match: /kartoffel|hardopfel|patate|pomme\s*de\s*terre|potato|susskartoffel/i },
+  { key: 'onion', label: 'Onions and garlic', home: 'pantry', days: D(60, 60, 0),
+    match: /zwiebel|oignon|knoblauch|\bail\b|schalotte|onion|garlic/i },
+
+  /* --- fridge staples ---------------------------------------------------- */
+  { key: 'tofu', label: 'Tofu and vegan protein', home: 'fridge', days: D(10, 0, 90),
+    match: /tofu|seitan|tempeh|planted|quorn|veggie\s*burger/i },
+  { key: 'dips', label: 'Fresh dips and sauces', home: 'fridge', days: D(7, 0, 60),
+    match: /hummus|guacamole|\bdip\b|tzatziki|pesto\s*frisch|frischsauce|sauce\s*fraiche/i },
+  { key: 'opened-condiment', label: 'Condiments', home: 'fridge', days: D(120, 365, 0),
+    match: /ketchup|senf|moutarde|mayonnaise|sauce|dressing|essig|vinaigre|soja|pesto/i },
+
+  /* --- cupboard ---------------------------------------------------------- */
+  { key: 'jam', label: 'Jam and honey', home: 'pantry', days: D(180, 540, 0),
+    match: /konfiture|marmelade|confiture|honig|miel|honey|nutella|aufstrich/i },
+  { key: 'cereal', label: 'Cereal and muesli', home: 'pantry', days: D(0, 180, 0),
+    match: /muesli|muesli|cornflakes|cereal|cereale|haferflocken|porridge|granola/i },
+  { key: 'pasta', label: 'Pasta and rice', home: 'pantry', days: D(0, 540, 0),
+    match: /teigwaren|spaghetti|nudeln|penne|fusilli|hörnli|hornli|pates|\breis\b|\briz\b|\brice\b|risotto|couscous|quinoa|polenta/i },
+  { key: 'baking', label: 'Flour, sugar, salt', home: 'pantry', days: D(0, 540, 0),
+    match: /mehl|farine|zucker|sucre|\bsalz\b|\bsel\b|backpulver|hefe|levure|starke|vanille/i },
+  { key: 'oil', label: 'Oil', home: 'pantry', days: D(0, 365, 0),
+    match: /(^|\s)ol\b|olivenol|sonnenblumenol|rapsol|erdnussol|huile|olive\s*oil|bratcreme/i },
+  { key: 'tinned', label: 'Tinned and jarred', home: 'pantry', days: D(0, 730, 0),
+    match: /konserve|\bdose\b|buchse|pelee|conserve|tin(ned)?\b|mais\b|kichererbsen|linsen|lentille|bouillon|suppe|soupe/i },
+  { key: 'coffee', label: 'Coffee and tea', home: 'pantry', days: D(0, 365, 0),
+    match: /kaffee|cafe|espresso|\btee\b|the\b|\btea\b|kapseln|nespresso/i },
+  { key: 'snacks', label: 'Snacks and biscuits', home: 'pantry', days: D(0, 180, 0),
+    match: /guetzli|biscuit|chips|cracker|nusse|noix|nuts|mandeln|studenten|popcorn|riegel|barre/i },
+  { key: 'drinks', label: 'Drinks', home: 'pantry', days: D(0, 365, 0),
+    match: /mineral|wasser|\beau\b|water|cola|rivella|schweppes|bier|biere|\bwein\b|\bvin\b|prosecco|sirup|energy/i },
+
+  /* --- not food: keep it off the list ------------------------------------ */
+  { key: 'non-food', label: 'Not food', home: 'other', days: D(0, 0, 0), food: false,
+    match: /\bwc\b|toiletten|papier|handetuch|waschmittel|weichsp|spulmittel|seife|savon|shampoo|duschgel|zahnpasta|zahnb|deo\b|windel|tampon|binden|batterie|sack\b|tragtasche|sac\s|tasche|kehricht|entsorg|erde\b|blumenerde|pflanzerde|dunger|zeitung|glubirne|folie|alufolie|kerze|blumen|fleurs|katzen|hunde|futter|mullsack|abfallsack|putz|reinig|papiertaschent/i },
+];
+
+// Compile every pattern once, in the folded alphabet.
+for (const category of CATEGORIES) category.match = foldPattern(category.match);
+
+/** Rough guess at how a receipt line should be stored and for how long. */
+function categorise(name) {
+  const text = fold(name).trim();
+  if (!text) return null;
+  for (const category of CATEGORIES) {
+    if (category.match.test(text)) return category;
+  }
+  return null;
+}
+
+/**
+ * @returns {{days:number|null, location:string, category:object|null, label:string}}
+ */
+function estimateShelfLife(name) {
+  const category = categorise(name);
+  if (!category) return { days: null, location: 'fridge', category: null, label: 'not recognised' };
+  if (category.food === false) return { days: null, location: 'other', category, label: 'not food' };
+  const days = category.days[category.home];
+  return {
+    days: days || null,
+    location: category.home,
+    category,
+    label: `${category.label} · about ${days} days in the ${category.home}`,
+  };
+}
+
+/** Same category, different shelf: "what if I freeze it?" */
+function daysFor(categoryKey, location) {
+  const category = CATEGORIES.find((c) => c.key === categoryKey);
+  if (!category) return null;
+  return category.days[location] || null;
+}
+
+function addDays(isoDate, days) {
+  const d = new Date(isoDate + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+return {categorise, estimateShelfLife, daysFor, addDays, fold, CATEGORIES};
+})();
+
+const __mod_store = (() => {
+/**
+ * store.js - all app state, persisted locally in the browser.
+ *
+ * Nothing leaves the device except the optional Open Food Facts lookup.
+ * One localStorage key holds the whole state; for a household-sized
+ * inventory that is a few tens of kilobytes at most.
+ */
+
+const KEY = 'freshtrack.v1';
+
+const EMPTY = {
+  version: 1,
+  items: [],        // see newItem() for the shape
+  products: {},     // gtin -> cached Open Food Facts result
+  shelfLife: {},    // gtin -> days, learned from manual entries
+  shelfLifeNames: {}, // receipt line (folded) -> days, learned from corrections
+  log: [],          // { at, action: 'consumed'|'discarded', name, gtin }
+  settings: { warnDays: 3, soonDays: 7 },
+};
+
+let state = load();
+const listeners = new Set();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return structuredClone(EMPTY);
+    const parsed = JSON.parse(raw);
+    return { ...structuredClone(EMPTY), ...parsed,
+      settings: { ...EMPTY.settings, ...(parsed.settings || {}) } };
+  } catch {
+    return structuredClone(EMPTY);   // private mode, blocked storage, corrupt data
+  }
+}
+
+function persist() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+  } catch (err) {
+    console.warn('Could not save state:', err);
+  }
+  for (const fn of listeners) fn(state);
+}
+
+function subscribe(fn) {
+  listeners.add(fn);
+  fn(state);
+  return () => listeners.delete(fn);
+}
+
+function getState() { return state; }
+function settings() { return state.settings; }
+
+function setSetting(key, value) {
+  state.settings[key] = value;
+  persist();
+}
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+function newItem(fields = {}) {
+  return {
+    id: uid(),
+    name: '',
+    brand: '',
+    image: '',
+    gtin: null,
+    quantity: 1,
+    unit: '',
+    expiry: null,          // ISO yyyy-mm-dd
+    expirySource: 'manual', // 'code' | 'manual' | 'estimated'
+    expiryKind: '',        // e.g. "Expiration date" / "Best before date"
+    lot: null,
+    serial: null,
+    location: 'fridge',
+    note: '',
+    raw: '',
+    addedAt: new Date().toISOString(),
+    status: 'active',
+    ...fields,
+  };
+}
+
+/** Active items, soonest expiry first, undated last. */
+function activeItems() {
+  return state.items
+    .filter((i) => i.status === 'active')
+    .sort((a, b) => {
+      if (!a.expiry && !b.expiry) return a.name.localeCompare(b.name);
+      if (!a.expiry) return 1;
+      if (!b.expiry) return -1;
+      return a.expiry.localeCompare(b.expiry);
+    });
+}
+
+function getItem(id) { return state.items.find((i) => i.id === id); }
+
+/**
+ * Add an item. If an identical product with the same expiry is already in
+ * stock, bump its quantity instead of creating a near-duplicate row.
+ */
+function addItem(fields) {
+  const item = newItem(fields);
+  const twin = state.items.find((i) =>
+    i.status === 'active' && i.gtin && i.gtin === item.gtin &&
+    i.expiry === item.expiry && i.lot === item.lot);
+  if (twin) {
+    twin.quantity += item.quantity;
+    persist();
+    return twin;
+  }
+  state.items.unshift(item);
+  if (item.gtin && item.expiry && item.expirySource === 'manual') rememberShelfLife(item.gtin, item.expiry);
+  persist();
+  return item;
+}
+
+function updateItem(id, changes) {
+  const item = getItem(id);
+  if (!item) return null;
+  Object.assign(item, changes);
+  persist();
+  return item;
+}
+
+function removeItem(id) {
+  state.items = state.items.filter((i) => i.id !== id);
+  persist();
+}
+
+/** Mark one unit as eaten or binned; the row disappears when nothing is left. */
+function resolveItem(id, action) {
+  const item = getItem(id);
+  if (!item) return;
+  item.quantity -= 1;
+  state.log.unshift({ at: new Date().toISOString(), action, name: item.name, gtin: item.gtin });
+  state.log = state.log.slice(0, 500);
+  if (item.quantity <= 0) {
+    item.status = action;
+    item.resolvedAt = new Date().toISOString();
+  }
+  persist();
+}
+
+/* --- learned shelf life ------------------------------------------------ */
+
+function rememberShelfLife(gtin, expiry) {
+  const days = Math.round((Date.parse(expiry + 'T00:00:00Z') - Date.now()) / 86400000);
+  if (days > 0 && days < 1000) state.shelfLife[gtin] = days;
+}
+
+/** Days this product usually lasts, if we have seen it entered by hand before. */
+function shelfLifeFor(gtin) {
+  return gtin ? state.shelfLife[gtin] || null : null;
+}
+
+/**
+ * Receipts have no barcode, so what is learned there is keyed by the printed
+ * line instead. Corrections are what make the second shop better than the first.
+ */
+function rememberNameShelfLife(name, days) {
+  const key = String(name || '').trim().toLowerCase();
+  if (!key || !(days > 0) || days > 1000) return;
+  state.shelfLifeNames[key] = days;
+  persist();
+}
+
+function learnedShelfLives() { return state.shelfLifeNames; }
+
+/** Add a reviewed receipt in one go. */
+function addItems(fieldsList) {
+  const added = [];
+  for (const fields of fieldsList) added.push(newItem(fields));
+  // unshift as a block so the whole shop keeps its order in the list
+  state.items.unshift(...added);
+  persist();
+  return added;
+}
+
+/* --- product cache ----------------------------------------------------- */
+
+function cachedProduct(gtin) { return gtin ? state.products[gtin] || null : null; }
+
+function cacheProduct(gtin, product) {
+  if (!gtin) return;
+  state.products[gtin] = { ...product, fetchedAt: Date.now() };
+  persist();
+}
+
+/* --- waste statistics --------------------------------------------------- */
+
+function wasteStats(days = 30) {
+  const since = Date.now() - days * 86400000;
+  const recent = state.log.filter((e) => Date.parse(e.at) >= since);
+  const eaten = recent.filter((e) => e.action === 'consumed').length;
+  const binned = recent.filter((e) => e.action === 'discarded').length;
+  return { eaten, binned, total: eaten + binned };
+}
+
+/* --- backup ------------------------------------------------------------- */
+
+function exportJson() { return JSON.stringify(state, null, 2); }
+
+function importJson(text) {
+  const parsed = JSON.parse(text);
+  if (!parsed || !Array.isArray(parsed.items)) throw new Error('That file does not look like a FreshTrack backup.');
+  state = { ...structuredClone(EMPTY), ...parsed };
+  persist();
+}
+
+function clearAll() {
+  state = structuredClone(EMPTY);
+  persist();
+}
+
+return {subscribe, getState, settings, setSetting, newItem, activeItems, getItem, addItem, updateItem, removeItem, resolveItem, shelfLifeFor, rememberNameShelfLife, learnedShelfLives, addItems, cachedProduct, cacheProduct, wasteStats, exportJson, importJson, clearAll};
+})();
+
+const __mod_off = (() => {
+/**
+ * off.js - product names from Open Food Facts.
+ *
+ * A GS1 code carries an expiry date but no product name, so a GTIN alone
+ * reads as a 14 digit number. Open Food Facts is an open database with good
+ * coverage of European supermarket products and permissive CORS, so a
+ * single fetch turns "07613039398034" into "Nescafe Gold, 200 g".
+ *
+ * Results (including misses) are cached in local storage, so each product is
+ * only ever looked up once.
+ */
+
+const { cachedProduct, cacheProduct } = __mod_store;
+
+const ENDPOINT = 'https://world.openfoodfacts.org/api/v2/product/';
+const FIELDS = 'product_name,product_name_de,product_name_fr,generic_name,brands,quantity,image_front_small_url,image_small_url,categories_tags';
+const MISS_TTL = 1000 * 60 * 60 * 24 * 30;   // retry a miss after a month
+
+/** Open Food Facts is keyed by the barcode as printed, not the padded GTIN-14. */
+function lookupKeys(gtin14) {
+  const trimmed = gtin14.replace(/^0+/, '');
+  const keys = new Set([trimmed]);
+  if (trimmed.length <= 13) keys.add(trimmed.padStart(13, '0'));
+  if (trimmed.length <= 12) keys.add(trimmed.padStart(12, '0'));
+  if (trimmed.length <= 8) keys.add(trimmed.padStart(8, '0'));
+  keys.add(gtin14);
+  return [...keys];
+}
+
+function pickName(p) {
+  return p.product_name || p.product_name_de || p.product_name_fr || p.generic_name || '';
+}
+
+/**
+ * @returns {Promise<{name, brand, quantity, image, found} | null>}
+ */
+async function lookupProduct(gtin, { signal } = {}) {
+  if (!gtin) return null;
+
+  const cached = cachedProduct(gtin);
+  if (cached && (cached.found || Date.now() - cached.fetchedAt < MISS_TTL)) return cached;
+
+  for (const key of lookupKeys(gtin)) {
+    try {
+      const res = await fetch(`${ENDPOINT}${encodeURIComponent(key)}.json?fields=${FIELDS}`, {
+        signal, headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.status !== 1 || !data.product) continue;
+
+      const p = data.product;
+      const product = {
+        found: true,
+        name: pickName(p).trim(),
+        brand: (p.brands || '').split(',')[0].trim(),
+        quantity: (p.quantity || '').trim(),
+        image: p.image_front_small_url || p.image_small_url || '',
+        categories: (p.categories_tags || []).slice(0, 4),
+      };
+      if (!product.name && !product.brand) continue;
+      cacheProduct(gtin, product);
+      return product;
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      // offline or blocked - fall through and record a miss
+    }
+  }
+
+  const miss = { found: false, name: '', brand: '', quantity: '', image: '' };
+  cacheProduct(gtin, miss);
+  return miss;
+}
+
+/**
+ * Rough shelf-life guess from the product's Open Food Facts categories, used
+ * only to preselect a sensible date in the manual entry sheet.
+ */
+const CATEGORY_DAYS = [
+  [/fresh-?(fish|seafood)|raw-?meat|minced|hackfleisch/, 2],
+  [/fresh-?(meat|poultry|chicken)|sausages/, 3],
+  [/salads|fresh-?herbs|berries|mushrooms/, 4],
+  [/milk|yogurt|yoghurt|fresh-?dairy|cream/, 7],
+  [/breads|viennoiseries|pastries/, 4],
+  [/fruits|vegetables/, 7],
+  [/cheeses/, 14],
+  [/eggs/, 21],
+  [/frozen/, 180],
+  [/canned|preserves|dried|pasta|rice|cereals|flour|sugar|coffee|tea|spices/, 365],
+  [/beverages|waters|sodas/, 180],
+];
+
+function guessShelfLife(categories = []) {
+  const joined = categories.join(' ');
+  for (const [pattern, days] of CATEGORY_DAYS) if (pattern.test(joined)) return days;
+  return null;
+}
+
+return {lookupProduct, guessShelfLife};
+})();
+
+const __mod_receipt = (() => {
+/**
+ * receipt.js - turning the text of a till receipt into grocery items.
+ *
+ * Written against Swiss supermarket receipts (Migros, Coop, Aldi, Lidl,
+ * Denner, Volg, Spar) but the fallback rules are generic: find the lines that
+ * look like "some words ..... 1.45", throw away the ones that are totals,
+ * payments, discounts or loyalty noise, and keep the rest.
+ *
+ * OCR output is messy by nature, so every rule here is forgiving and the user
+ * reviews the result before anything is saved.
+ */
+
+const { estimateShelfLife, addDays, fold } = __mod_shelflife;
+
+const STORES = [
+  [/migros|m-?budget|m-?classic|migipedia|cumulus/i, 'Migros'],
+  [/\bcoop\b|prix\s*garantie|naturaplan|supercard|f\S{0,3}r\s+mich\s+und\s+dich|pour\s+moi\s+et\s+pour\s+toi/i, 'Coop'],
+  [/\blidl\b/i, 'Lidl'],
+  [/\baldi\b/i, 'Aldi'],
+  [/\bdenner\b/i, 'Denner'],
+  [/\bvolg\b/i, 'Volg'],
+  [/\bspar\b/i, 'Spar'],
+  [/manor|globus/i, 'Manor'],
+];
+
+// Lines that are never a product.
+const NOT_AN_ITEM = new RegExp([
+  'total', 'summe', 'zwischensumme', 'subtotal', 'betrag', 'saldo', 'somme',
+  'bar\\b', 'bargeld', 'karte', 'carte', 'twint', 'ec\\b', 'maestro', 'visa', 'mastercard',
+  'kreditkarte', 'debit', 'kontaktlos', 'zahlung', 'paiement',
+  'postfinance', 'reka', 'lunch.?check', 'buchung', 'terminal', 'autoris',
+  'signatur', 'trx', 'transaktion', 'kundenbeleg', 'haendler', 'handler',
+  'ruckgeld', 'wechselgeld', 'rendu', 'change\\b',
+  'mwst', 'mehrwertsteuer', '\\btva\\b', '\\bvat\\b', 'steuer',
+  'rabatt', 'aktion', 'ristourne', 'remise', 'discount', 'bon\\b', 'gutschein',
+  'cumulus', 'supercard', 'punkte', 'points', 'treue',
+  'kasse', 'kassier', 'filiale', 'quittung', 'beleg', 'ticket', 'rechnung',
+  'artikel', 'positionen', 'anzahl\\s*artikel', 'stuck\\s*total',
+  'danke', 'merci', 'wiedersehen', 'besuch', 'tel\\.', 'www\\.', 'gmbh', '\\bag\\b',
+  'uid\\b', 'che-', 'datum', 'uhrzeit', 'zeit\\b', 'runden', 'rundung', 'trinkgeld',
+  'einkauf', 'genossenschaft', 'strasse', 'offnungszeiten', 'kundendienst',
+].join('|'), 'i');
+
+const PRICE_AT_END = /(-?\d{1,4}[.,]\d{2})\s*(?:[A-Za-z0-9]{1,3}\*?|\*)?\s*$/;
+const TRAILING_PRICE = /\s(-?\d{1,4}[.,]\d{2})\s*$/;
+// A quantity column, possibly with an OCR smudge stuck to it ("1)", "1|").
+const QUANTITY_COLUMN = /\s(\d{1,3}(?:[.,]\d{1,3})?)[^\s\d]{0,2}\s*$/;
+const QUANTITY_PREFIX = /^\s*(\d{1,3})\s*[x×*]\s*/i;
+const WEIGHT_LINE = /^\s*(\d+[.,]\d+)\s*(kg|g|l|ml|st|stk)\b.*?[x×*]\s*(\d+[.,]\d+)/i;
+const DATE_ANY = /(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})|(\d{4})-(\d{2})-(\d{2})/;
+
+/** OCR reads 0 as O and 1 as l often enough to be worth undoing, but only in numbers. */
+function fixDigits(text) {
+  return text.replace(/[OoIlSB](?=[\d.,])|(?<=[\d.,])[OoIlSB]/g,
+    (c) => ({ O: '0', o: '0', I: '1', l: '1', S: '5', B: '8' }[c]));
+}
+
+function toNumber(text) {
+  const n = parseFloat(String(text).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+
+function detectStore(text) {
+  const head = text.slice(0, 600);
+  for (const [pattern, name] of STORES) if (pattern.test(head)) return name;
+  return null;
+}
+
+function detectDate(text, now) {
+  const currentYear = now.getFullYear();
+  for (const line of text.split('\n')) {
+    const m = DATE_ANY.exec(fixDigits(line));
+    if (!m) continue;
+    let y, mo, d;
+    if (m[4]) { y = +m[4]; mo = +m[5]; d = +m[6]; }
+    else {
+      d = +m[1]; mo = +m[2]; y = +m[3];
+      if (y < 100) y += 2000;
+    }
+    if (mo < 1 || mo > 12 || d < 1 || d > 31) continue;
+    if (y < currentYear - 2 || y > currentYear + 1) continue;
+    return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+  return null;
+}
+
+/** Strip article codes, VAT letters and other trailing noise from a name. */
+function cleanName(name) {
+  return name
+    .replace(/^[\s|.:*#>-]+/, '')
+    .replace(/[\s.:*#|-]+$/, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^\d{6,}\s+/, '')          // leading article number
+    .replace(/\s+[A-Z]$/, '')           // trailing VAT class letter
+    .trim();
+}
+
+/**
+ * Coop and friends print "Artikel | Menge | Preis | Aktion | Total", so once
+ * the total has been taken off the end there can be two more prices and a
+ * quantity still clinging to the product name. Migros prints a single price,
+ * and there the name must be left alone - so the quantity column is only
+ * stripped when at least one extra price was found before it. That is what
+ * keeps the "1L" on "M-Classic Vollmilch 1L".
+ */
+function splitColumns(text) {
+  let name = text;
+  let prices = 0;
+  for (let i = 0; i < 2; i++) {
+    const m = TRAILING_PRICE.exec(name);
+    if (!m) break;
+    name = name.slice(0, m.index);
+    prices++;
+  }
+  if (!prices) return { name, quantity: null, amount: '' };
+
+  const q = QUANTITY_COLUMN.exec(name);
+  if (!q) return { name, quantity: null, amount: '' };
+  name = name.slice(0, q.index);
+  const value = toNumber(q[1]);
+  // A fractional quantity is a weight, not a count of packets.
+  return Number.isInteger(value) && value > 0
+    ? { name, quantity: Math.min(value, 99), amount: '' }
+    : { name, quantity: 1, amount: value ? String(value) : '' };
+}
+
+function looksLikeAName(name) {
+  const letters = (name.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+  return letters >= 3 && letters / Math.max(name.length, 1) > 0.4;
+}
+
+/**
+ * @param {string} text raw OCR text
+ * @returns {{store, date, items: Array, skipped: Array}}
+ */
+function parseReceipt(text, opts = {}) {
+  const now = opts.now || new Date();
+  const raw = String(text || '');
+  const store = detectStore(raw);
+  const date = detectDate(raw, now) || now.toISOString().slice(0, 10);
+
+  const lines = raw.split(/\r?\n/).map((l) => l.replace(/\t/g, ' ').trimEnd());
+  const items = [];
+  const skipped = [];
+  let pendingName = null;      // a product name whose price is on the next line
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // "0.482 kg x 24.90     12.00" - the weight line for the name above it
+    const weight = WEIGHT_LINE.exec(fixDigits(trimmed));
+    if (weight && pendingName) {
+      const priceMatch = PRICE_AT_END.exec(fixDigits(trimmed));
+      items.push({
+        raw: `${pendingName} / ${trimmed}`,
+        name: cleanName(pendingName),
+        quantity: 1,
+        amount: `${toNumber(weight[1])} ${weight[2].toLowerCase()}`,
+        price: priceMatch ? toNumber(priceMatch[1]) : toNumber(weight[3]),
+      });
+      pendingName = null;
+      continue;
+    }
+
+    const priceMatch = PRICE_AT_END.exec(fixDigits(trimmed));
+    if (!priceMatch) {
+      // No price: might be a product whose price is on the following line.
+      const candidate = cleanName(trimmed);
+      pendingName = (!NOT_AN_ITEM.test(fold(candidate)) && looksLikeAName(candidate)) ? candidate : null;
+      continue;
+    }
+    pendingName = null;
+
+    const price = toNumber(priceMatch[1]);
+    const columns = splitColumns(trimmed.slice(0, priceMatch.index));
+    let name = cleanName(columns.name);
+
+    if (NOT_AN_ITEM.test(fold(name)) || NOT_AN_ITEM.test(fold(trimmed))) { skipped.push(trimmed); continue; }
+    if (price !== null && price < 0) { skipped.push(trimmed); continue; }   // discount line
+    if (!looksLikeAName(name)) { skipped.push(trimmed); continue; }
+
+    let quantity = columns.quantity || 1;
+    const q = QUANTITY_PREFIX.exec(name);          // Migros writes "2 x Zopf Butter"
+    if (q) { quantity = Math.min(+q[1], 99); name = cleanName(name.slice(q[0].length)); }
+    if (!looksLikeAName(name)) { skipped.push(trimmed); continue; }
+
+    items.push({ raw: trimmed, name, quantity, price, amount: columns.amount || undefined });
+  }
+
+  return { store, date, items, skipped };
+}
+
+/**
+ * Turn parsed lines into items ready for the review screen: a date for every
+ * line we recognise, and an honest "no date" for every line we do not.
+ *
+ * @param learned  optional map of lowercased name -> days, from past corrections
+ */
+function toDrafts(parsed, learned = {}) {
+  return parsed.items.map((item) => {
+    const key = item.name.toLowerCase();
+    const remembered = learned[key];
+    const guess = estimateShelfLife(item.name);
+    const days = remembered ?? guess.days;
+
+    return {
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      amount: item.amount || '',
+      raw: item.raw,
+      location: guess.location,
+      category: guess.category ? guess.category.key : null,
+      categoryLabel: guess.category ? guess.category.label : null,
+      days,
+      expiry: days ? addDays(parsed.date, days) : null,
+      // 'learned' beats 'guessed' beats 'unknown'; 'skip' for non-food
+      confidence: guess.category && guess.category.food === false ? 'skip'
+        : remembered ? 'learned' : days ? 'guessed' : 'unknown',
+      include: !(guess.category && guess.category.food === false),
+    };
+  });
+}
+
+return {parseReceipt, toDrafts};
+})();
+
+const __mod_ocr = (() => {
+/**
+ * ocr.js - reading a photographed receipt on the device.
+ *
+ * tesseract.js runs Tesseract as WebAssembly in a worker, so the photo never
+ * leaves the phone. The trade is accuracy: till printers use thin dot-matrix
+ * type on curled thermal paper, which is close to the worst case for OCR.
+ * Everything downstream therefore assumes the text is wrong somewhere, and
+ * the user reviews it before anything is saved.
+ *
+ * First run downloads roughly 12 MB (engine plus language data) and the
+ * browser caches it; later scans are offline.
+ */
+
+const CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@6/dist/tesseract.min.js';
+
+const LANGUAGES = {
+  deu: 'German', fra: 'French', ita: 'Italian', eng: 'English',
+};
+
+let libraryPromise = null;
+let worker = null;
+let workerLang = null;
+
+function loadLibrary() {
+  if (libraryPromise) return libraryPromise;
+  libraryPromise = new Promise((resolve, reject) => {
+    if (window.Tesseract) return resolve(window.Tesseract);
+    const script = document.createElement('script');
+    script.src = CDN;
+    script.async = true;
+    script.onload = () => (window.Tesseract ? resolve(window.Tesseract) : reject(new Error('OCR engine loaded but exported nothing')));
+    script.onerror = () => reject(new Error('Could not download the OCR engine. It needs the network the first time; after that it is cached.'));
+    document.head.appendChild(script);
+  });
+  return libraryPromise;
+}
+
+/**
+ * Straighten out what we can before Tesseract sees it: bring the long side to
+ * roughly 2000px - down for a full-resolution phone photo, and *up* for an
+ * already-shrunk one, because Tesseract needs a certain letter height and a
+ * small crop of a receipt falls below it - then greyscale and stretch the
+ * contrast so faint thermal print separates from the paper.
+ *
+ * Measured on a real Coop receipt: at 675px the Menge and Preis columns came
+ * out as "ih te"; upscaled to 2000px the same photo read "1 11.00 11.00 1*".
+ */
+async function prepareImage(file, targetSide = 2000) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(3, targetSide / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close?.();
+
+  const image = ctx.getImageData(0, 0, w, h);
+  const px = image.data;
+
+  // Greyscale, and collect a histogram in the same pass.
+  const histogram = new Uint32Array(256);
+  for (let i = 0; i < px.length; i += 4) {
+    const grey = (px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114) | 0;
+    px[i] = px[i + 1] = px[i + 2] = grey;
+    histogram[grey]++;
+  }
+
+  // Stretch between the 5th and 95th percentile rather than min/max, so one
+  // dark fold or a blown highlight does not flatten the whole receipt.
+  const total = w * h;
+  let low = 0, high = 255, seen = 0;
+  for (let v = 0; v < 256; v++) { seen += histogram[v]; if (seen > total * 0.05) { low = v; break; } }
+  seen = 0;
+  for (let v = 255; v >= 0; v--) { seen += histogram[v]; if (seen > total * 0.05) { high = v; break; } }
+  const span = Math.max(high - low, 1);
+
+  for (let i = 0; i < px.length; i += 4) {
+    const v = Math.max(0, Math.min(255, ((px[i] - low) * 255) / span));
+    px[i] = px[i + 1] = px[i + 2] = v;
+  }
+  ctx.putImageData(image, 0, 0);
+
+  return canvas;
+}
+
+/**
+ * @param {File|Blob} file
+ * @param {{lang?: string, onProgress?: (fraction:number, label:string)=>void}} options
+ * @returns {Promise<string>} the recognised text
+ */
+async function readReceipt(file, { lang = 'deu', onProgress = () => {} } = {}) {
+  onProgress(0.02, 'Preparing the photo');
+  const canvas = await prepareImage(file);
+
+  onProgress(0.06, 'Loading the OCR engine');
+  const Tesseract = await loadLibrary();
+
+  if (!worker || workerLang !== lang) {
+    if (worker) { await worker.terminate().catch(() => {}); worker = null; }
+    worker = await Tesseract.createWorker(lang, 1, {
+      logger: (m) => {
+        if (m.status === 'recognizing text') onProgress(0.2 + m.progress * 0.75, 'Reading the receipt');
+        else if (m.progress) onProgress(0.06 + m.progress * 0.14, 'Loading language data');
+      },
+    });
+    workerLang = lang;
+    // 4 = a single column of text of variable sizes, which is what a receipt is.
+    await worker.setParameters({ tessedit_pageseg_mode: '4', preserve_interword_spaces: '1' });
+  }
+
+  const { data } = await worker.recognize(canvas);
+  onProgress(1, 'Done');
+  return data.text || '';
+}
+
+async function release() {
+  if (worker) { await worker.terminate().catch(() => {}); worker = null; workerLang = null; }
+}
+
+return {prepareImage, readReceipt, release, LANGUAGES};
+})();
+
+const __mod_scanner = (() => {
+/**
+ * scanner.js - camera scanning.
+ *
+ * Two decoders, picked at runtime:
+ *
+ *   1. The built-in BarcodeDetector API (Chrome, Edge, Android WebView).
+ *      Fast, no download, hardware accelerated.
+ *   2. zxing-wasm, loaded from a CDN, for browsers without it - most
+ *      importantly Safari on iOS, which still does not ship the Shape
+ *      Detection API (WebKit bug 281848).
+ *
+ * If neither is available the app still works: paste or type the code, or
+ * add the item by hand.
+ */
+
+const FORMATS_NATIVE = ['qr_code', 'data_matrix', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'itf', 'aztec', 'pdf417'];
+const FORMATS_ZXING = ['QRCode', 'DataMatrix', 'EAN-13', 'EAN-8', 'UPC-A', 'UPC-E', 'Code128', 'ITF', 'DataBar', 'DataBarExpanded'];
+const ZXING_CDN = 'https://cdn.jsdelivr.net/npm/zxing-wasm@3/dist/iife/full/index.js';
+
+let zxingPromise = null;
+
+function loadZxing() {
+  if (zxingPromise) return zxingPromise;
+  zxingPromise = new Promise((resolve, reject) => {
+    if (window.ZXingWASM) return resolve(window.ZXingWASM);
+    const script = document.createElement('script');
+    script.src = ZXING_CDN;
+    script.async = true;
+    script.onload = () => (window.ZXingWASM ? resolve(window.ZXingWASM) : reject(new Error('zxing loaded but exported nothing')));
+    script.onerror = () => reject(new Error('could not load the fallback decoder'));
+    document.head.appendChild(script);
+  });
+  return zxingPromise;
+}
+
+async function makeDecoder() {
+  if ('BarcodeDetector' in window) {
+    try {
+      const supported = await window.BarcodeDetector.getSupportedFormats();
+      const formats = FORMATS_NATIVE.filter((f) => supported.includes(f));
+      if (formats.length) {
+        const detector = new window.BarcodeDetector({ formats });
+        return {
+          name: 'BarcodeDetector',
+          canDataMatrix: formats.includes('data_matrix'),
+          detect: async (source) => {
+            const found = await detector.detect(source);
+            return found.map((b) => ({ text: b.rawValue, format: b.format }));
+          },
+        };
+      }
+    } catch { /* fall through to zxing */ }
+  }
+
+  const zxing = await loadZxing();
+  await zxing.prepareZXingModule?.({ fireImmediately: true });
+  return {
+    name: 'zxing-wasm',
+    canDataMatrix: true,
+    detect: async (source) => {
+      const results = await zxing.readBarcodes(source, {
+        formats: FORMATS_ZXING, tryHarder: true, maxNumberOfSymbols: 1,
+      });
+      return results.map((r) => ({ text: r.text, format: r.format }));
+    },
+  };
+}
+
+class Scanner {
+  constructor(videoEl, canvasEl) {
+    this.video = videoEl;
+    this.canvas = canvasEl;
+    this.ctx = canvasEl.getContext('2d', { willReadFrequently: true });
+    this.stream = null;
+    this.decoder = null;
+    this.running = false;
+    this.lastText = '';
+    this.lastAt = 0;
+    this.facingMode = 'environment';
+  }
+
+  get decoderName() { return this.decoder ? this.decoder.name : null; }
+
+  /** @param {(code:string, format:string)=>void} onResult */
+  async start(onResult, onStatus = () => {}) {
+    this.onResult = onResult;
+    this.onStatus = onStatus;
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error('This browser will not give a web page camera access. Open the app over https, or use "Type a code".');
+    }
+
+    onStatus('Preparing the decoder...');
+    this.decoder = await makeDecoder();
+
+    onStatus('Asking for the camera...');
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: this.facingMode },
+        width: { ideal: 1280 }, height: { ideal: 720 },
+        focusMode: 'continuous',
+      },
+      audio: false,
+    });
+    this.video.srcObject = this.stream;
+    await this.video.play();
+
+    this.running = true;
+    onStatus('');
+    this._loop();
+  }
+
+  stop() {
+    this.running = false;
+    if (this.raf) cancelAnimationFrame(this.raf);
+    if (this.timer) clearTimeout(this.timer);
+    if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
+    this.stream = null;
+    this.video.srcObject = null;
+  }
+
+  async flip() {
+    this.facingMode = this.facingMode === 'environment' ? 'user' : 'environment';
+    const { onResult, onStatus } = this;
+    this.stop();
+    await this.start(onResult, onStatus);
+  }
+
+  /** Torch is only exposed on some Android devices. */
+  async toggleTorch() {
+    const track = this.stream?.getVideoTracks()[0];
+    if (!track) return false;
+    const caps = track.getCapabilities?.() || {};
+    if (!caps.torch) return false;
+    this.torchOn = !this.torchOn;
+    await track.applyConstraints({ advanced: [{ torch: this.torchOn }] });
+    return this.torchOn;
+  }
+
+  async _loop() {
+    if (!this.running) return;
+    try {
+      const source = await this._frame();
+      if (source) {
+        const results = await this.decoder.detect(source);
+        if (results.length) this._emit(results[0]);
+      }
+    } catch (err) {
+      if (this.running) console.debug('scan frame failed', err);
+    }
+    // ~8 frames a second is plenty and keeps the phone cool.
+    this.timer = setTimeout(() => { this.raf = requestAnimationFrame(() => this._loop()); }, 120);
+  }
+
+  async _frame() {
+    const { videoWidth: w, videoHeight: h } = this.video;
+    if (!w || !h) return null;
+    if (this.decoder.name === 'BarcodeDetector') return this.video;
+    // zxing wants pixels
+    this.canvas.width = w;
+    this.canvas.height = h;
+    this.ctx.drawImage(this.video, 0, 0, w, h);
+    return this.ctx.getImageData(0, 0, w, h);
+  }
+
+  _emit({ text, format }) {
+    if (!text) return;
+    const now = Date.now();
+    if (text === this.lastText && now - this.lastAt < 2500) return;   // one beep per code
+    this.lastText = text;
+    this.lastAt = now;
+    this.onResult(text, format);
+  }
+}
+
+/** Decode a still image (photo library, or a screenshot of a code). */
+async function decodeImageFile(file) {
+  const decoder = await makeDecoder();
+  const bitmap = await createImageBitmap(file);
+  let source = bitmap;
+  if (decoder.name !== 'BarcodeDetector') {
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width; canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(bitmap, 0, 0);
+    source = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
+  }
+  const results = await decoder.detect(source);
+  bitmap.close?.();
+  return results.length ? results[0].text : null;
+}
+
+/** Short vibration + click so a scan is felt, not just seen. */
+function feedback(ok = true) {
+  try { navigator.vibrate?.(ok ? 40 : [30, 60, 30]); } catch { /* not supported */ }
+}
+
+return {decodeImageFile, feedback, Scanner};
+})();
+
+const __mod_app = (() => {
+/**
+ * app.js - UI wiring.
+ */
+
+const { parseCode, daysUntil, AI_TABLE } = __mod_gs1;
+const store = __mod_store;
+const { lookupProduct, guessShelfLife } = __mod_off;
+const { Scanner, decodeImageFile, feedback } = __mod_scanner;
+const { parseReceipt, toDrafts } = __mod_receipt;
+const { estimateShelfLife, addDays } = __mod_shelflife;
+const { readReceipt } = __mod_ocr;
+
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const LOCATIONS = { fridge: 'Fridge', freezer: 'Freezer', pantry: 'Pantry', other: 'Elsewhere' };
+const LOCATION_ICON = { fridge: '\u{1F9CA}', freezer: '❄️', pantry: '\u{1F35E}', other: '\u{1F6D2}' };
+
+/* ------------------------------------------------------------------ *
+ * Small helpers
+ * ------------------------------------------------------------------ */
+
+function toast(message) {
+  const node = $('#toast');
+  node.textContent = message;
+  node.hidden = false;
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { node.hidden = true; }, 2600);
+}
+
+function isoToday(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function statusFor(days) {
+  const { warnDays, soonDays } = store.settings();
+  if (days === null) return 'none';
+  if (days < 0) return 'alert';
+  if (days <= warnDays) return 'alert';
+  if (days <= soonDays) return 'warn';
+  return 'ok';
+}
+
+function pillLabel(days) {
+  if (days === null) return 'No date';
+  if (days < 0) return `${-days}d ago`;
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  if (days < 31) return `${days} days`;
+  if (days < 365) return `${Math.round(days / 30)} mo`;
+  return `${(days / 365).toFixed(1)} yr`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Views
+ * ------------------------------------------------------------------ */
+
+const TITLES = {
+  inventory: ['In stock', ''],
+  scan: ['Scan', 'Point the camera at a product code'],
+  receipt: ['Receipt', 'Add a whole shop at once'],
+  decode: ['Decode', 'See what a code actually contains'],
+};
+
+let currentView = 'inventory';
+
+function showView(name) {
+  currentView = name;
+  for (const section of document.querySelectorAll('.view')) section.hidden = section.id !== `view-${name}`;
+  for (const tab of document.querySelectorAll('.tab')) tab.classList.toggle('is-active', tab.dataset.view === name);
+  const [title, sub] = TITLES[name];
+  $('#view-title').textContent = title;
+  $('#view-sub').textContent = name === 'inventory' ? inventorySubtitle() : sub;
+  if (name === 'inventory') renderInventory();
+  if (name !== 'scan') stopScanner();
+  window.scrollTo({ top: 0 });
+}
+
+function inventorySubtitle() {
+  const items = store.activeItems();
+  const urgent = items.filter((i) => i.expiry && daysUntil(i.expiry) <= store.settings().warnDays).length;
+  if (!items.length) return 'Nothing tracked yet';
+  const units = items.reduce((n, i) => n + i.quantity, 0);
+  const noun = units === 1 ? 'item' : 'items';
+  return urgent ? `${units} ${noun} - ${urgent} need eating` : `${units} ${noun}, all fine`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Inventory
+ * ------------------------------------------------------------------ */
+
+const GROUPS = [
+  { key: 'past', title: 'Past its date', test: (d) => d !== null && d < 0 },
+  { key: 'now', title: 'Eat now', test: (d) => d !== null && d >= 0 && d <= store.settings().warnDays },
+  { key: 'soon', title: 'This week', test: (d) => d !== null && d > store.settings().warnDays && d <= store.settings().soonDays },
+  { key: 'later', title: 'Later', test: (d) => d !== null && d > store.settings().soonDays },
+  { key: 'undated', title: 'No date', test: (d) => d === null },
+];
+
+function renderInventory() {
+  const query = $('#search').value.trim().toLowerCase();
+  const all = store.activeItems();
+  const items = query
+    ? all.filter((i) => `${i.name} ${i.brand} ${i.gtin || ''} ${i.lot || ''}`.toLowerCase().includes(query))
+    : all;
+
+  $('#inventory-empty').hidden = all.length > 0;
+  if (currentView === 'inventory') $('#view-sub').textContent = inventorySubtitle();
+  renderStats(all);
+
+  const list = $('#inventory-list');
+  list.innerHTML = '';
+  if (!items.length) {
+    if (all.length) list.innerHTML = '<p class="hint" style="padding:1.5rem 1rem">Nothing matches that search.</p>';
+    return;
+  }
+
+  for (const group of GROUPS) {
+    const inGroup = items.filter((i) => group.test(daysUntil(i.expiry)));
+    if (!inGroup.length) continue;
+    const heading = document.createElement('div');
+    heading.className = 'group-title';
+    heading.textContent = `${group.title} (${inGroup.length})`;
+    list.appendChild(heading);
+    for (const item of inGroup) list.appendChild(itemRow(item));
+  }
+}
+
+function itemRow(item) {
+  const days = daysUntil(item.expiry);
+  const status = statusFor(days);
+  const button = document.createElement('button');
+  button.className = 'item';
+  button.dataset.id = item.id;
+
+  const bits = [];
+  if (item.quantity > 1) bits.push(`${item.quantity}x`);
+  if (item.brand) bits.push(item.brand);
+  bits.push(LOCATIONS[item.location] || '');
+  if (item.expiry) bits.push(formatDate(item.expiry));
+
+  button.innerHTML = `
+    <span class="item-thumb" ${item.image ? `style="background-image:url('${esc(item.image)}')"` : ''}>${item.image ? '' : (LOCATION_ICON[item.location] || '\u{1F6D2}')}</span>
+    <span class="item-main">
+      <span class="item-name">${esc(item.name || 'Unnamed product')}</span>
+      <span class="item-meta">${esc(bits.filter(Boolean).join(' · '))}</span>
+    </span>
+    <span class="pill ${status}">${pillLabel(days)}</span>`;
+  button.addEventListener('click', () => openItemSheet(item.id));
+  return button;
+}
+
+function renderStats(items) {
+  const warn = store.settings().warnDays;
+  const urgent = items.filter((i) => i.expiry !== null && daysUntil(i.expiry) <= warn);
+  const expired = items.filter((i) => i.expiry !== null && daysUntil(i.expiry) < 0);
+  const waste = store.wasteStats(30);
+  const rate = waste.total ? Math.round((waste.binned / waste.total) * 100) : null;
+
+  $('#stat-row').innerHTML = `
+    <div class="stat ${expired.length ? 'alert' : ''}"><b>${expired.length}</b><small>past date</small></div>
+    <div class="stat ${urgent.length ? 'warn' : ''}"><b>${urgent.length - expired.length < 0 ? 0 : urgent.length - expired.length}</b><small>eat within ${warn}d</small></div>
+    <div class="stat"><b>${items.reduce((n, i) => n + i.quantity, 0)}</b><small>in stock</small></div>
+    <div class="stat"><b>${rate === null ? '–' : rate + '%'}</b><small>binned, 30d</small></div>`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Sheets
+ * ------------------------------------------------------------------ */
+
+function openSheet(html) {
+  $('#sheet-body').innerHTML = html;
+  $('#sheet').hidden = false;
+  $('#scrim').hidden = false;
+  return $('#sheet-body');
+}
+
+function closeSheet() {
+  $('#sheet').hidden = true;
+  $('#scrim').hidden = true;
+  $('#sheet-body').innerHTML = '';
+}
+
+/* --- add / edit ------------------------------------------------------ */
+
+const QUICK_DATES = [
+  ['Today', 0], ['+2d', 2], ['+3d', 3], ['+5d', 5],
+  ['1 week', 7], ['2 weeks', 14], ['1 month', 30], ['3 months', 90], ['1 year', 365],
+];
+
+/**
+ * @param {object} draft  partial item
+ * @param {'add'|'edit'} mode
+ */
+function openEditSheet(draft, mode = 'add') {
+  const fromCode = draft.expirySource === 'code';
+  const body = openSheet(`
+    <h2>${mode === 'add' ? 'Add to stock' : 'Edit item'}</h2>
+    ${draft.gtin ? `<p class="muted" id="gtin-line">GTIN ${esc(draft.gtin)}${draft.lot ? ' · lot ' + esc(draft.lot) : ''}</p>` : ''}
+
+    <div class="field">
+      <label for="f-name">Product</label>
+      <input id="f-name" value="${esc(draft.name || '')}" placeholder="What is it?" autocomplete="off">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="f-expiry">Use by</label>
+        <input id="f-expiry" type="date" value="${esc(draft.expiry || '')}">
+      </div>
+      <div class="field" style="max-width:9rem">
+        <label for="f-qty">Quantity</label>
+        <div class="stepper">
+          <button type="button" id="qty-minus">-</button>
+          <input id="f-qty" type="number" min="1" step="1" value="${draft.quantity || 1}">
+          <button type="button" id="qty-plus">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="source-line">${fromCode
+      ? `<span class="badge-source">✓ ${esc(draft.expiryKind || 'Expiry date')} read from the code</span>`
+      : '<span class="badge-source manual">No date in the code - set one</span>'}</div>
+
+    <div class="chips" id="date-chips">
+      ${QUICK_DATES.map(([label, days]) => `<button type="button" class="chip" data-days="${days}">${label}</button>`).join('')}
+    </div>
+
+    <div class="row" style="margin-top:.8rem">
+      <div class="field">
+        <label for="f-location">Where</label>
+        <select id="f-location">
+          ${Object.entries(LOCATIONS).map(([k, v]) => `<option value="${k}"${draft.location === k ? ' selected' : ''}>${v}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-note">Note</label>
+      <input id="f-note" value="${esc(draft.note || '')}" placeholder="Optional">
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn ghost" id="f-cancel">Cancel</button>
+      <button class="btn primary" id="f-save">${mode === 'add' ? 'Add' : 'Save'}</button>
+    </div>`);
+
+  const expiryInput = body.querySelector('#f-expiry');
+  const qtyInput = body.querySelector('#f-qty');
+
+  body.querySelector('#date-chips').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    expiryInput.value = isoToday(+chip.dataset.days);
+    draft.expirySource = 'manual';
+    body.querySelector('#source-line').innerHTML = '<span class="badge-source manual">Date set by hand</span>';
+    for (const c of body.querySelectorAll('.chip')) c.classList.toggle('is-active', c === chip);
+  });
+  body.querySelector('#qty-minus').addEventListener('click', () => { qtyInput.value = Math.max(1, +qtyInput.value - 1); });
+  body.querySelector('#qty-plus').addEventListener('click', () => { qtyInput.value = +qtyInput.value + 1; });
+  body.querySelector('#f-cancel').addEventListener('click', closeSheet);
+
+  body.querySelector('#f-save').addEventListener('click', () => {
+    const fields = {
+      ...draft,
+      name: body.querySelector('#f-name').value.trim() || (draft.gtin ? `Product ${draft.gtin.replace(/^0+/, '')}` : 'Unnamed product'),
+      expiry: expiryInput.value || null,
+      quantity: Math.max(1, +qtyInput.value || 1),
+      location: body.querySelector('#f-location').value,
+      note: body.querySelector('#f-note').value.trim(),
+    };
+    if (mode === 'add') {
+      store.addItem(fields);
+      toast(`Added ${fields.name}`);
+    } else {
+      store.updateItem(draft.id, fields);
+      toast('Saved');
+    }
+    closeSheet();
+    showView('inventory');
+  });
+
+  // Look the product up in the background so the name fills itself in.
+  if (draft.gtin && !draft.name) {
+    lookupProduct(draft.gtin).then((product) => {
+      if (!product || !product.found || $('#sheet').hidden) return;
+      const nameInput = body.querySelector('#f-name');
+      if (!nameInput.value) {
+        nameInput.value = [product.name, product.quantity].filter(Boolean).join(', ');
+      }
+      draft.brand = product.brand;
+      draft.image = product.image;
+      if (!expiryInput.value) {
+        const days = store.shelfLifeFor(draft.gtin) || guessShelfLife(product.categories);
+        if (days) {
+          expiryInput.value = isoToday(days);
+          draft.expirySource = 'estimated';
+          body.querySelector('#source-line').innerHTML =
+            `<span class="badge-source manual">Estimated: this kind of product usually keeps ~${days} days</span>`;
+        }
+      }
+    }).catch(() => {});
+  }
+}
+
+/* --- item detail ----------------------------------------------------- */
+
+function openItemSheet(id) {
+  const item = store.getItem(id);
+  if (!item) return;
+  const days = daysUntil(item.expiry);
+  const body = openSheet(`
+    <h2>${esc(item.name)}</h2>
+    <p class="muted">${esc([item.brand, LOCATIONS[item.location], item.quantity > 1 ? item.quantity + ' in stock' : ''].filter(Boolean).join(' · '))}</p>
+    <div class="summary-card" style="margin:.8rem 0">
+      <dl>
+        <dt>Use by</dt><dd>${item.expiry ? esc(formatDate(item.expiry)) + ` (${pillLabel(days)})` : 'not set'}</dd>
+        <dt>Date from</dt><dd>${item.expirySource === 'code' ? esc(item.expiryKind || 'the code') : item.expirySource === 'estimated' ? 'an estimate' : 'you'}</dd>
+        ${item.gtin ? `<dt>GTIN</dt><dd>${esc(item.gtin)}</dd>` : ''}
+        ${item.lot ? `<dt>Batch</dt><dd>${esc(item.lot)}</dd>` : ''}
+        ${item.note ? `<dt>Note</dt><dd>${esc(item.note)}</dd>` : ''}
+      </dl>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn primary" id="i-eat">Used it</button>
+      <button class="btn danger" id="i-bin">Threw it out</button>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="i-edit">Edit</button>
+      <button class="btn ghost" id="i-del">Remove</button>
+    </div>`);
+
+  body.querySelector('#i-eat').addEventListener('click', () => { store.resolveItem(id, 'consumed'); closeSheet(); toast('Nice - eaten, not wasted'); });
+  body.querySelector('#i-bin').addEventListener('click', () => { store.resolveItem(id, 'discarded'); closeSheet(); toast('Logged as waste'); });
+  body.querySelector('#i-edit').addEventListener('click', () => openEditSheet({ ...item }, 'edit'));
+  body.querySelector('#i-del').addEventListener('click', () => { store.removeItem(id); closeSheet(); toast('Removed'); });
+}
+
+/* --- settings -------------------------------------------------------- */
+
+function openSettingsSheet() {
+  const s = store.settings();
+  const body = openSheet(`
+    <h2>Settings</h2>
+    <div class="row">
+      <div class="field">
+        <label for="s-warn">"Eat now" threshold (days)</label>
+        <input id="s-warn" type="number" min="0" max="30" value="${s.warnDays}">
+      </div>
+      <div class="field">
+        <label for="s-soon">"This week" threshold (days)</label>
+        <input id="s-soon" type="number" min="1" max="90" value="${s.soonDays}">
+      </div>
+    </div>
+    <p class="muted">Everything is stored on this device only. Back it up before clearing browser data.</p>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="s-export">Export backup</button>
+      <label class="btn ghost file-btn" style="text-align:center">Import<input id="s-import" type="file" accept="application/json" hidden></label>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn danger" id="s-clear">Delete everything</button>
+      <button class="btn primary" id="s-close">Done</button>
+    </div>`);
+
+  body.querySelector('#s-warn').addEventListener('change', (e) => store.setSetting('warnDays', +e.target.value));
+  body.querySelector('#s-soon').addEventListener('change', (e) => store.setSetting('soonDays', +e.target.value));
+  body.querySelector('#s-close').addEventListener('click', closeSheet);
+  body.querySelector('#s-export').addEventListener('click', () => {
+    const blob = new Blob([store.exportJson()], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `freshtrack-backup-${isoToday()}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  });
+  body.querySelector('#s-import').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try { store.importJson(await file.text()); toast('Backup restored'); closeSheet(); }
+    catch (err) { toast(err.message); }
+  });
+  body.querySelector('#s-clear').addEventListener('click', () => {
+    if (window.confirm('Delete all tracked groceries on this device?')) { store.clearAll(); closeSheet(); toast('Cleared'); }
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Scanning
+ * ------------------------------------------------------------------ */
+
+let scanner = null;
+
+async function startScanner() {
+  if (!scanner) scanner = new Scanner($('#video'), $('#frame'));
+  try {
+    await scanner.start(handleScan, (msg) => { $('#scan-status').textContent = msg; });
+    $('#btn-scan-toggle').textContent = 'Stop camera';
+    $('#btn-flip').hidden = false;
+    $('#btn-torch').hidden = false;
+    $('#scan-hint').textContent = `Decoder: ${scanner.decoderName}. Hold the code inside the frame.`;
+  } catch (err) {
+    $('#scan-status').textContent = '';
+    $('#scan-hint').textContent = friendlyCameraError(err);
+    $('#btn-scan-toggle').textContent = 'Start camera';
+  }
+}
+
+function friendlyCameraError(err) {
+  const name = err && err.name;
+  if (name === 'NotAllowedError') return 'Camera permission was refused. Allow it in the browser settings, or type the code instead.';
+  if (name === 'NotFoundError') return 'No camera found on this device. Type the code, or decode a photo.';
+  if (String(err.message).includes('fallback decoder')) return 'This browser has no built-in barcode decoder and the fallback could not be downloaded. Type the code, or open the app where the CDN is reachable.';
+  return `Camera unavailable: ${err.message}`;
+}
+
+function stopScanner() {
+  if (scanner) { scanner.stop(); $('#btn-scan-toggle').textContent = 'Start camera'; }
+}
+
+function handleScan(text, format) {
+  feedback(true);
+  const parsed = parseCode(text);
+  logScan(text, format, parsed);
+  if (!parsed.gtin && !parsed.expiry) {
+    toast('Scanned, but that is not a product code');
+    return;
+  }
+  stopScanner();
+  openEditSheet(draftFromParsed(parsed));
+}
+
+function draftFromParsed(parsed) {
+  return {
+    gtin: parsed.gtin,
+    lot: parsed.lot,
+    serial: parsed.serial,
+    expiry: parsed.expiry,
+    expiryKind: parsed.expiryKind,
+    expirySource: parsed.expiry ? 'code' : 'manual',
+    quantity: 1,
+    location: 'fridge',
+    raw: parsed.raw,
+    name: '',
+  };
+}
+
+function logScan(text, format, parsed) {
+  const line = document.createElement('div');
+  line.className = 'logline';
+  line.textContent = `${format || parsed.format} · ${text.slice(0, 90)}`;
+  $('#scan-log').prepend(line);
+  while ($('#scan-log').children.length > 4) $('#scan-log').lastChild.remove();
+}
+
+
+/* ------------------------------------------------------------------ *
+ * Receipts
+ *
+ * A receipt gives the shopping list and the purchase date. The expiry date
+ * has to be inferred: category shelf life counted from the day of purchase,
+ * overridden by anything the user has corrected before, and left blank when
+ * we genuinely do not know. Every line is editable before it is saved.
+ * ------------------------------------------------------------------ */
+
+let review = null;   // { parsed, drafts, text }
+
+function setProgress(fraction, label) {
+  $('#receipt-progress').hidden = false;
+  $('#progress-bar').style.width = Math.round(fraction * 100) + '%';
+  $('#progress-label').textContent = label;
+}
+
+async function handleReceiptPhoto(file) {
+  $('#receipt-review').hidden = true;
+  $('#receipt-intro').hidden = true;
+  setProgress(0, 'Starting');
+  try {
+    const text = await readReceipt(file, {
+      lang: $('#receipt-lang').value,
+      onProgress: (fraction, label) => setProgress(fraction, label),
+    });
+    $('#receipt-progress').hidden = true;
+    showReceipt(text);
+  } catch (err) {
+    $('#receipt-progress').hidden = true;
+    $('#receipt-intro').hidden = false;
+    toast(err.message);
+  }
+}
+
+function showReceipt(text) {
+  const parsed = parseReceipt(text);
+  const drafts = toDrafts(parsed, store.learnedShelfLives());
+  review = { parsed, drafts, text };
+  renderReview();
+}
+
+function renderReview() {
+  const { parsed, drafts, text } = review;
+  const box = $('#receipt-review');
+  $('#receipt-intro').hidden = true;
+  box.hidden = false;
+
+  if (!drafts.length) {
+    box.innerHTML = `
+      <div class="summary-card">
+        <h2>Nothing readable</h2>
+        <p class="muted">No product lines came out of that image. Photograph the receipt straight on and filling the frame, or paste the text instead.</p>
+      </div>
+      ${rawTextBlock(text)}
+      <div class="review-actions"><button class="btn ghost" id="rv-again">Try another photo</button></div>`;
+    $('#rv-again').addEventListener('click', resetReceipt);
+    return;
+  }
+
+  const counts = drafts.reduce((acc, d) => { acc[d.confidence] = (acc[d.confidence] || 0) + 1; return acc; }, {});
+
+  box.innerHTML = `
+    <div class="review-head">
+      <div style="flex:1">
+        <h2>${esc(parsed.store || 'Receipt')}</h2>
+        <p class="muted">${drafts.length} lines · ${counts.guessed || 0} dated from the shelf-life table${counts.learned ? ', ' + counts.learned + ' from your own history' : ''}${counts.unknown ? ', ' + counts.unknown + ' unknown' : ''}</p>
+      </div>
+      <div class="field">
+        <label for="rv-date">Bought on</label>
+        <input id="rv-date" type="date" value="${esc(parsed.date)}">
+      </div>
+    </div>
+    <div id="rv-lines">${drafts.map(lineMarkup).join('')}</div>
+    ${rawTextBlock(text)}
+    <div class="review-actions">
+      <button class="btn ghost" id="rv-cancel">Discard</button>
+      <button class="btn primary" id="rv-add">Add ${drafts.filter((d) => d.include).length} items</button>
+    </div>`;
+
+  $('#rv-date').addEventListener('change', (e) => {
+    // Re-date every line that still has its computed date.
+    review.parsed.date = e.target.value;
+    for (const draft of review.drafts) if (draft.days && !draft.edited) draft.expiry = addDays(e.target.value, draft.days);
+    renderReview();
+  });
+
+  $('#rv-lines').addEventListener('change', onLineChange);
+  $('#rv-lines').addEventListener('input', onLineChange);
+  $('#rv-cancel').addEventListener('click', resetReceipt);
+  $('#rv-add').addEventListener('click', commitReview);
+}
+
+function lineMarkup(draft, index) {
+  const note = draft.confidence === 'unknown' ? 'not recognised — set a date or leave it undated'
+    : draft.confidence === 'skip' ? 'not food'
+    : `${draft.categoryLabel} · ${draft.days} days`;
+  return `
+    <div class="line ${draft.include ? '' : 'is-off'}" data-i="${index}">
+      <input type="checkbox" data-role="include" ${draft.include ? 'checked' : ''} aria-label="Include ${esc(draft.name)}">
+      <div class="line-main">
+        <input class="line-name" data-role="name" value="${esc(draft.name)}">
+        <div class="line-meta">
+          ${draft.quantity > 1 ? `<span>${draft.quantity}x</span>` : ''}
+          ${draft.amount ? `<span>${esc(draft.amount)}</span>` : ''}
+          <span class="tag ${draft.confidence}">${draft.confidence}</span>
+          <span>${esc(note)}</span>
+        </div>
+      </div>
+      <input type="date" data-role="expiry" value="${esc(draft.expiry || '')}">
+    </div>`;
+}
+
+function rawTextBlock(text) {
+  return `<details class="raw-text"><summary>What the reader saw</summary><pre>${esc(text)}</pre></details>`;
+}
+
+function onLineChange(event) {
+  const row = event.target.closest('.line');
+  if (!row) return;
+  const draft = review.drafts[+row.dataset.i];
+  const role = event.target.dataset.role;
+
+  if (role === 'include') {
+    draft.include = event.target.checked;
+    row.classList.toggle('is-off', !draft.include);
+    $('#rv-add').textContent = `Add ${review.drafts.filter((d) => d.include).length} items`;
+  } else if (role === 'expiry') {
+    draft.expiry = event.target.value || null;
+    draft.edited = true;
+  } else if (role === 'name') {
+    draft.name = event.target.value;
+    // Renaming a line is usually how an unrecognised item gets recognised.
+    if (!draft.edited) {
+      const guess = estimateShelfLife(draft.name);
+      if (guess.days) {
+        draft.days = guess.days;
+        draft.location = guess.location;
+        draft.category = guess.category.key;
+        draft.categoryLabel = guess.category.label;
+        draft.confidence = 'guessed';
+        draft.expiry = addDays(review.parsed.date, guess.days);
+        row.querySelector('[data-role="expiry"]').value = draft.expiry;
+        row.querySelector('.line-meta').innerHTML =
+          `<span class="tag guessed">guessed</span><span>${esc(guess.category.label)} · ${guess.days} days</span>`;
+      }
+    }
+  }
+}
+
+function commitReview() {
+  const chosen = review.drafts.filter((d) => d.include);
+  if (!chosen.length) { toast('Nothing ticked'); return; }
+
+  const purchase = review.parsed.date;
+  store.addItems(chosen.map((draft) => ({
+    name: draft.name,
+    quantity: draft.quantity,
+    expiry: draft.expiry,
+    expirySource: draft.confidence === 'learned' ? 'learned' : draft.edited ? 'manual' : 'estimated',
+    expiryKind: draft.categoryLabel || '',
+    location: draft.location === 'other' ? 'pantry' : draft.location,
+    note: [review.parsed.store, 'receipt ' + purchase].filter(Boolean).join(' · '),
+    raw: draft.raw,
+  })));
+
+  // Learn from what was corrected, so the next receipt starts closer.
+  for (const draft of chosen) {
+    if (!draft.edited || !draft.expiry) continue;
+    const days = Math.round((Date.parse(draft.expiry + 'T12:00:00Z') - Date.parse(purchase + 'T12:00:00Z')) / 86400000);
+    store.rememberNameShelfLife(draft.name, days);
+  }
+
+  toast(`Added ${chosen.length} items`);
+  resetReceipt();
+  showView('inventory');
+}
+
+function resetReceipt() {
+  review = null;
+  $('#receipt-review').hidden = true;
+  $('#receipt-review').innerHTML = '';
+  $('#receipt-progress').hidden = true;
+  $('#receipt-intro').hidden = false;
+  $('#file-receipt').value = '';
+}
+
+function pasteReceiptSheet() {
+  const body = openSheet(`
+    <h2>Paste receipt text</h2>
+    <p class="muted">From a digital receipt, an email, or anywhere else you already have the text.</p>
+    <div class="field"><textarea id="p-text" rows="8" style="margin:0;width:100%" placeholder="MIGROS\nM-Classic Vollmilch 1L   1.45\n..."></textarea></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="p-cancel">Cancel</button>
+      <button class="btn primary" id="p-go">Read it</button>
+    </div>`);
+  body.querySelector('#p-cancel').addEventListener('click', closeSheet);
+  body.querySelector('#p-go').addEventListener('click', () => {
+    const text = body.querySelector('#p-text').value;
+    closeSheet();
+    if (text.trim()) showReceipt(text);
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Decode view
+ * ------------------------------------------------------------------ */
+
+const SAMPLES = {
+  dl: 'https://id.gs1.org/01/09506000134352/10/ABC-123?17=270131&3103=000355',
+  dm: ']d2010950600013435217270131\x1D10ABC-123',
+  ean: '5449000000996',
+};
+
+function renderDecode(input) {
+  const parsed = parseCode(input);
+  const out = $('#decode-output');
+  if (!input.trim()) { out.innerHTML = ''; return; }
+
+  const rows = parsed.segments.map((s) => {
+    const highlight = ['17', '15', '7003', '01'].includes(s.ai);
+    const decoded = s.value === null ? '<span class="muted">could not decode</span>'
+      : (typeof s.value === 'number' ? s.value : esc(s.value)) + (s.time ? ' ' + esc(s.time) : '');
+    return `<tr class="${highlight ? 'highlight' : ''}">
+      <td><code>${esc(s.ai)}</code></td>
+      <td>${esc(s.label)}</td>
+      <td><code>${esc(s.raw)}</code></td>
+      <td>${decoded}</td></tr>`;
+  }).join('');
+
+  const days = daysUntil(parsed.expiry);
+  out.innerHTML = `
+    <div class="summary-card">
+      <h2>${parsed.format === 'digital-link' ? 'GS1 Digital Link' : parsed.format === 'element-string' ? 'GS1 element string' : parsed.format === 'plain-gtin' ? 'Plain linear barcode' : 'Not recognised'}</h2>
+      <dl>
+        ${parsed.symbology ? `<dt>Symbology</dt><dd>${esc(parsed.symbology)}</dd>` : ''}
+        <dt>GTIN</dt><dd>${parsed.gtin ? esc(parsed.gtin) + (parsed.gtinValid ? ' ✓' : ' ⚠ check digit') : '–'}</dd>
+        <dt>Expiry</dt><dd>${parsed.expiry ? `${esc(formatDate(parsed.expiry))} (${pillLabel(days)}) · ${esc(parsed.expiryKind)}` : 'not in this code'}</dd>
+        ${parsed.lot ? `<dt>Batch</dt><dd>${esc(parsed.lot)}</dd>` : ''}
+        ${parsed.serial ? `<dt>Serial</dt><dd>${esc(parsed.serial)}</dd>` : ''}
+        ${parsed.netWeight ? `<dt>Net weight</dt><dd>${parsed.netWeight} kg</dd>` : ''}
+      </dl>
+    </div>
+    ${parsed.warnings.length ? `<div class="warnings"><b>Notes</b><ul>${parsed.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>` : ''}
+    ${rows ? `<table class="ai-table"><thead><tr><th>AI</th><th>Meaning</th><th>Raw</th><th>Decoded</th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+    ${parsed.gtin ? `<div class="alt-input"><button class="btn primary" id="decode-add">Add this to stock</button></div>` : ''}`;
+
+  const add = $('#decode-add');
+  if (add) add.addEventListener('click', () => openEditSheet(draftFromParsed(parsed)));
+}
+
+/* ------------------------------------------------------------------ *
+ * Wiring
+ * ------------------------------------------------------------------ */
+
+function typeCodeSheet() {
+  const body = openSheet(`
+    <h2>Type or paste a code</h2>
+    <p class="muted">A barcode number, or the whole contents of a QR code.</p>
+    <div class="field"><input id="t-code" placeholder="5449000000996" autocomplete="off"></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="t-cancel">Cancel</button>
+      <button class="btn primary" id="t-go">Continue</button>
+    </div>`);
+  body.querySelector('#t-cancel').addEventListener('click', closeSheet);
+  const go = () => {
+    const parsed = parseCode(body.querySelector('#t-code').value);
+    if (!parsed.gtin && !parsed.expiry) { toast('That is not a product code'); return; }
+    openEditSheet(draftFromParsed(parsed));
+  };
+  body.querySelector('#t-go').addEventListener('click', go);
+  body.querySelector('#t-code').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  body.querySelector('#t-code').focus();
+}
+
+function init() {
+  store.subscribe(renderInventory);
+
+  for (const tab of document.querySelectorAll('.tab')) {
+    tab.addEventListener('click', () => showView(tab.dataset.view));
+  }
+  for (const btn of document.querySelectorAll('[data-goto]')) {
+    btn.addEventListener('click', () => showView(btn.dataset.goto));
+  }
+
+  $('#search').addEventListener('input', renderInventory);
+  $('#btn-settings').addEventListener('click', openSettingsSheet);
+  $('#scrim').addEventListener('click', closeSheet);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+
+  $('#btn-scan-toggle').addEventListener('click', () => {
+    if (scanner && scanner.running) stopScanner(); else startScanner();
+  });
+  $('#btn-flip').addEventListener('click', () => scanner?.flip());
+  $('#btn-torch').addEventListener('click', async () => {
+    const on = await scanner?.toggleTorch();
+    if (on === false) toast('This camera has no torch control');
+  });
+  $('#file-photo').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    $('#scan-hint').textContent = 'Decoding the photo...';
+    try {
+      const text = await decodeImageFile(file);
+      if (text) handleScan(text, 'photo');
+      else toast('No code found in that image');
+    } catch (err) { toast('Could not decode: ' + err.message); }
+    $('#scan-hint').textContent = 'Point at the QR code, Data Matrix or barcode on the pack.';
+    e.target.value = '';
+  });
+
+  $('#btn-type-code').addEventListener('click', typeCodeSheet);
+  $('#btn-add-manual').addEventListener('click', () => openEditSheet({ quantity: 1, location: 'fridge', expirySource: 'manual' }));
+  $('#btn-add-manual-empty').addEventListener('click', () => openEditSheet({ quantity: 1, location: 'fridge', expirySource: 'manual' }));
+
+  $('#file-receipt').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleReceiptPhoto(file);
+  });
+  $('#btn-receipt-text').addEventListener('click', pasteReceiptSheet);
+
+  $('#btn-decode').addEventListener('click', () => renderDecode($('#decode-input').value));
+  $('#decode-input').addEventListener('input', () => renderDecode($('#decode-input').value));
+  for (const btn of document.querySelectorAll('[data-sample]')) {
+    btn.addEventListener('click', () => {
+      $('#decode-input').value = SAMPLES[btn.dataset.sample];
+      renderDecode(SAMPLES[btn.dataset.sample]);
+    });
+  }
+
+  showView('inventory');
+  renderInventory();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+return {};
+})();
+</script>

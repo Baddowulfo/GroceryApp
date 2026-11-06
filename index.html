@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f9d58">
+<title>FreshTrack</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-main">
+    <h1 id="view-title">In stock</h1>
+    <p id="view-sub" class="muted"></p>
+  </div>
+  <button id="btn-settings" class="icon-btn" aria-label="Settings">&#9881;</button>
+</header>
+
+<main>
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-inventory" class="view">
+    <div class="stat-row" id="stat-row"></div>
+    <div class="search-row">
+      <input id="search" type="search" placeholder="Search your groceries" autocomplete="off">
+    </div>
+    <div id="inventory-list"></div>
+    <div id="inventory-empty" class="empty" hidden>
+      <div class="empty-art">&#127823;</div>
+      <h2>Nothing tracked yet</h2>
+      <p>Scan a product code, or add something by hand. Codes that carry an expiry date fill it in for you.</p>
+      <button class="btn primary" data-goto="scan">Scan a code</button>
+      <button class="btn ghost" id="btn-add-manual-empty">Add by hand</button>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-scan" class="view" hidden>
+    <div class="camera-wrap">
+      <video id="video" playsinline muted></video>
+      <canvas id="frame" hidden></canvas>
+      <div class="reticle"><span></span></div>
+      <div id="scan-status" class="scan-status"></div>
+    </div>
+    <div class="scan-controls">
+      <button id="btn-scan-toggle" class="btn primary">Start camera</button>
+      <button id="btn-torch" class="btn ghost" hidden>Torch</button>
+      <button id="btn-flip" class="btn ghost" hidden>Flip</button>
+    </div>
+    <p class="hint" id="scan-hint">Point at the QR code, Data Matrix or barcode on the pack.</p>
+    <div class="alt-input">
+      <label class="btn ghost file-btn">Decode a photo
+        <input id="file-photo" type="file" accept="image/*" hidden>
+      </label>
+      <button class="btn ghost" id="btn-type-code">Type a code</button>
+      <button class="btn ghost" id="btn-add-manual">Add by hand</button>
+    </div>
+    <div id="scan-log" class="scan-log"></div>
+  </section>
+
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-receipt" class="view" hidden>
+    <div id="receipt-intro">
+      <p class="hint">Photograph the whole receipt straight on, in good light. The text is read on this device — the photo is never uploaded.</p>
+      <div class="alt-input">
+        <label class="btn primary file-btn">Photograph a receipt
+          <input id="file-receipt" type="file" accept="image/*" capture="environment" hidden>
+        </label>
+        <button class="btn ghost" id="btn-receipt-text">Paste text instead</button>
+      </div>
+      <div class="field" style="padding:0 1rem">
+        <label for="receipt-lang">Receipt language</label>
+        <select id="receipt-lang">
+          <option value="deu">German</option>
+          <option value="fra">French</option>
+          <option value="ita">Italian</option>
+          <option value="eng">English</option>
+        </select>
+      </div>
+      <p class="hint">A receipt says what you bought and when, never when it goes off. Each line is matched to a food category and given that category's typical shelf life from the purchase date — then you correct what looks wrong. Corrections are remembered for next time.</p>
+    </div>
+
+    <div id="receipt-progress" hidden>
+      <div class="progress"><span id="progress-bar"></span></div>
+      <p class="hint" id="progress-label"></p>
+    </div>
+
+    <div id="receipt-review" hidden></div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-decode" class="view" hidden>
+    <p class="hint">Paste anything a scanner produced and see exactly what the code carries. Useful for finding out what your supermarket actually encodes.</p>
+    <textarea id="decode-input" rows="3" placeholder="https://id.gs1.org/01/09506000134352?17=270131  -  or a raw element string"></textarea>
+    <div class="alt-input">
+      <button class="btn primary" id="btn-decode">Decode</button>
+      <button class="btn ghost" data-sample="dl">Sample: Digital Link</button>
+      <button class="btn ghost" data-sample="dm">Sample: DataMatrix</button>
+      <button class="btn ghost" data-sample="ean">Sample: EAN-13</button>
+    </div>
+    <div id="decode-output"></div>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button class="tab is-active" data-view="inventory"><span>&#128203;</span>Stock</button>
+  <button class="tab" data-view="scan"><span>&#128247;</span>Scan</button>
+  <button class="tab" data-view="receipt"><span>&#129534;</span>Receipt</button>
+  <button class="tab" data-view="decode"><span>&#128269;</span>Decode</button>
+</nav>
+
+<!-- bottom sheet ------------------------------------------------------- -->
+<div id="scrim" class="scrim" hidden></div>
+<div id="sheet" class="sheet" role="dialog" aria-modal="true" hidden>
+  <div class="sheet-handle"></div>
+  <div id="sheet-body"></div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script type="module" src="js/app.js"></script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+</script>
+</body>
+</html>

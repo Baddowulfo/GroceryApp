@@ -1,0 +1,17 @@
+{
+  "name": "FreshTrack - grocery expiry tracker",
+  "short_name": "FreshTrack",
+  "description": "Scan product codes, read the expiry date straight off the pack, and eat things before they go off.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f6f2",
+  "theme_color": "#1f8a54",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
